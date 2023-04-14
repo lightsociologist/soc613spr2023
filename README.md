@@ -10,7 +10,7 @@ The class is taught by [Ryan Light](https://ryanlight.netlify.app/).
 
 Slides: [.html][.qmd]
 
-Workshop: [.html[.qmd]
+Workshop: [.html][.qmd]
 
 Homework: [.pdf](https://github.com/lightsociologist/soc613spr2023/tree/main/homework/001hw/w1_homework_set.pdf) The bonus challanges you to build a family network tree in R. Here is an example if interested: [.html](https://raw.githack.com/lightsociologist/soc613spr2023/tree/main/homework/001hw/example/family_tree.html)
 
@@ -33,7 +33,7 @@ Homework:
 
 ### 004 Network Composition, Distance, and Balance
 
-Slides: [.html][.qmd]
+Slides: [.html](https://raw.githack.com/lightsociologist/soc613spr2023/main/lectures/004_local/week4_local.html)[.qmd]
 
 Workshop: [.html[.qmd]
 
