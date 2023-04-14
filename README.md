@@ -13,7 +13,9 @@ The class is taught by [Ryan Light](https://ryanlight.netlify.app/).
 **003 Collecting and Visualizing Network Data**
 
 Slides: [.html][.qmd]
+
 Workshop: [.html[.qmd]
+
 Homework:
 
 **004 Network Composition, Distance, and Balance**
