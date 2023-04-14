@@ -12,7 +12,8 @@ Slides: [.html][.qmd]
 
 Workshop: [.html[.qmd]
 
-Homework:
+Homework: [.pdf](https://github.com/lightsociologist/soc613spr2023/homework/w1_homework_set.pdf) [Family Tree Network Example](https://github.com/lightsociologist/soc613spr2023/homework/example/family_tree.html) 
+
 
 ### 002 Foundations and Theoretical Perspectives
 
@@ -20,7 +21,7 @@ Slides: [.html][.qmd]
 
 Workshop: [.html[.qmd]
 
-Homework:
+Homework: [.pdf]((https://github.com/lightsociologist/soc613spr2023/homework/w2_homework_set.pdf) 
 
 ### 003 Collecting and Visualizing Network Data
 
