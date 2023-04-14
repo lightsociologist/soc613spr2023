@@ -1,0 +1,272 @@
+---
+title: 'Week 7: Affiliation Networks'
+author: "Ryan Light with significant collaboration with jimi adams"
+date: "May 12, 2021"
+output:
+  html_document:
+    df_print: paged
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+## Affiliation Networks
+How do social actors or entities “hang” together?
+
+  -Direct ties: Social relations
+
+  -Indirect ties: Membership
+  
+    - What does it mean to be affiliated through a literal group, activity, 
+    or event?
+ 
+ “A man may regarded as the point of intersection of an indefinite number of circles representing social groups, having as many arcs passing through him as there are groups.” (Cooley)
+
+What does it mean to be connected through a generic group or an abstraction?
+
+## Duality: Breiger (1974)
+
+Argument
+
+Metaphor: People intersect through their associations, which defines (in part) their individuality.
+
+Duality: Relations among groups implies relations among individuals or vice versa.
+
+## Affiliation Example
+
+Let's begin with a person-to-group matrix
+ 
+Each column is a group, each cell is a person, and the cell=1 if the person in that row belongs to the group in that column. You can calculate how many groups shared between two individuals by comparing the rows. Identify every column where both rows equals 1 and sum them. This is the overlap.
+![](images/example_matrix.JPG)
+
+You can also tell the total number of group members by summing the columns and the total number of groups/indvidual by summing the rows.
+
+## Let's make a matrix in R
+```{r, echo=T}
+one <- c(0, 1, 1, 0, 0, 0)
+two <- c(0, 0, 1, 1, 0, 0)
+three <- c(0, 0, 0, 1, 1, 1)
+four <- c(0, 0, 0, 1, 0, 1)
+five <- c(1, 0, 0, 1, 0, 0)
+
+dual <- cbind(one, two, three, four, five)
+
+rownames(dual) <- c("A", "B", "C", "D", "E", "F")
+
+print(dual)
+
+  ```
+
+## Duality, Transformations, Matrix Algebra
+
+Recall that the matrix is a simple and elegant way to manipulate networks. That is most obviously the case, perhaps, when thinking through duality.
+
+From persons-to-groups to persons *and* groups.
+
+If we multiple our Persons-to-Group matrix by its transpose, we have a Person matrix.
+
+If we multiply the traspose of our Persons-to-Group matrix by the matrix itself, we have the Groups matrix.
+
+## Matrix Operations
+
+![](images/matrix_operations.JPG)
+
+## Person Matrix in R
+
+```{r, echo=T}
+
+person <- dual %*% t(dual)
+
+print(person)
+
+```
+
+## Group Matrix in R
+
+```{r, echo=T}
+
+groups <- t(dual) %*% dual
+
+print(groups)
+
+```
+
+## Affiliation Networks Reprise
+
+Breiger(1974:87): "With respect to the membership network...persons who are actors in one picture (the P matrix) are with equal legitimacy viewed as connections in the dual picture (the G matrix), and conversely for groups."
+
+The resulting network:
+    - Is always symmetric
+    - The diagonal tells you how many groups (persons) a person (group) belongs to (has).
+  
+## Bipartite Network
+
+The general class of affiliation networks are known as *bipartite* or *two-mode* networks. The matrix transformation described above where we transform the network from two-mode to one-mode is called a *projection*.
+
+One-mode projections, while perhaps more easy to understand, obviously involve a substantial loss of information. 
+
+While it remains more common, perhaps, to project two-mode networks, increasing work is looking at the tractability of keeping two-mode networks as two-modes.
+
+## Igraph: Real Data Sketch
+
+Let's walk through the CEOs data from Wasserman and Faust (1994). CEOs share membership in groups.
+
+bipartite.mapping(g) tells us if we are working with bipartite network.
+
+```{r, echo=TRUE, message=FALSE}
+
+library(igraph)
+
+ceo.bip <- read.graph("CEOS.net", format="pajek")
+
+bipartite.mapping(ceo.bip)
+
+```
+
+## CEO Plot 1
+
+Let's just plot it.
+
+```{r}
+
+plot(ceo.bip)
+
+```
+
+## CEO Plot 2: Distinguish Modes
+
+That plot was not super informative as the modes are not defined. We can do better.
+
+```{r, echo=T}
+
+V(ceo.bip)$color <- ifelse(V(ceo.bip)$type, "tomato", "gold")
+V(ceo.bip)$shape <- ifelse(V(ceo.bip)$type, "circle", "square")
+E(ceo.bip)$color <- "lightgray"
+
+name <- V(ceo.bip)$name
+
+name2 <- gsub(".*-","",name)
+
+V(ceo.bip)$name <- name2
+
+coords <- layout_with_fr(ceo.bip)
+
+plot(ceo.bip, layout=coords, vertex.label.color = "black")
+legend(x=-1.5, y=-1.1, c("Clubs","CEOs"), pch=21,
+col="#777777", pt.bg=c("tomato", "gold"), pt.cex=2, cex=.8, bty="n", ncol=1)
+
+```
+
+## CEO Plot 2: Distinguish Modes
+
+```{r, echo=F}
+
+V(ceo.bip)$color <- ifelse(V(ceo.bip)$type, "tomato", "gold")
+V(ceo.bip)$shape <- ifelse(V(ceo.bip)$type, "circle", "square")
+E(ceo.bip)$color <- "lightgray"
+
+name <- V(ceo.bip)$name
+
+name2 <- gsub(".*-","",name)
+
+V(ceo.bip)$name <- name2
+
+coords <- layout_with_fr(ceo.bip)
+
+plot(ceo.bip, layout=coords, vertex.label.color = "black")
+legend(x=-1.5, y=-1.1, c("Clubs","CEOs"), pch=21,
+       col="#777777", pt.bg=c("tomato", "gold"), pt.cex=2, cex=.8, bty="n", ncol=1)
+
+```
+
+## CEO Plot 3: Bipartite Layout
+
+```{r, echo=T}
+
+coords <- layout_as_bipartite(ceo.bip)
+
+plot(ceo.bip, layout=coords, vertex.label.color = "black")
+legend(x=-1.5, y=-1.1, c("Clubs","CEOs"), pch=c(21,22),
+       col="#777777", pt.bg=c("tomato", "gold"), pt.cex=2, cex=.8, bty="n", ncol=1)
+```
+
+## CEO Plot 3: Bipartite Layout
+
+```{r, echo=F}
+
+coords <- layout_as_bipartite(ceo.bip)
+
+plot(ceo.bip, layout=coords, vertex.label.color = "black")
+legend(x=-1.5, y=-1.1, c("Clubs","CEOs"), pch=c(21,22),
+       col="#777777", pt.bg=c("tomato", "gold"), pt.cex=2, cex=.8, bty="n", ncol=1)
+```
+
+## Group Network: One-Mode
+
+Easy way to project is to pull off matrix and then work through the transformation as described in the example network.
+
+```{r, echo=T}
+
+ceo.mat <- as_incidence_matrix(ceo.bip)
+
+clubs <-  t(ceo.mat) %*% ceo.mat
+
+clubs.g <- as.undirected(simplify(graph_from_adjacency_matrix(clubs)))
+
+plot(clubs.g, vertex.color="tomato")
+
+```
+
+
+## Group Network: One-Mode
+
+```{r, echo=F}
+
+ceo.mat <- as_incidence_matrix(ceo.bip)
+
+clubs <-  t(ceo.mat) %*% ceo.mat
+
+clubs.g <- as.undirected(simplify(graph_from_adjacency_matrix(clubs)))
+
+plot(clubs.g, vertex.color="tomato")
+
+```
+
+
+## Person Network: One-Mode
+
+For the CEO network, we can just flip the matrix multiplication.
+
+```{r, echo=T}
+
+ceos <-  ceo.mat %*% t(ceo.mat)
+
+ceos.g <- as.undirected(simplify(graph_from_adjacency_matrix(ceos)))
+
+plot(ceos.g, vertex.shape="square", vertex.color="gold")
+
+```
+
+
+## Person Network: One-Mode
+
+```{r, echo=T}
+
+ceos <-  ceo.mat %*% t(ceo.mat)
+
+ceos.g <- as.undirected(simplify(graph_from_adjacency_matrix(ceos)))
+
+plot(ceos.g, vertex.shape="square", vertex.color="gold")
+
+```
+
+
+```{r, echo=F}
+
+
+#library(knitr)
+#purl("week6_cohesion_workshop.Rmd")
+
+```

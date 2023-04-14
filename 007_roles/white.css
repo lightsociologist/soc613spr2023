@@ -1,0 +1,4 @@
+slides > slide.backdrop {
+  background: none !important;
+  background-color: white !important;
+}

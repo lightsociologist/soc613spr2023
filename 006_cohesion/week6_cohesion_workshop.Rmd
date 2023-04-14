@@ -1,0 +1,329 @@
+---
+title: 'Week 6: Introduction to Cohesion'
+author: "Ryan Light with significant collaboration with jimi adams"
+date: "May 5, 2021"
+output:
+  html_document:
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+## What is a social group?
+
+One of the fundamental goals of social network analysis is to locate groups of nodes that seem to be "grouped" together. This grouping pattern between nodes can be the result of several factors. For example, there could be exogenous groupings based on affiliation (e.g. work units or afterschool activities) or they could be based on connectivity. Strategies for finding groups in networks use endogenous network properties to identify groups or the propensity to group. 
+
+The most basic way to think about this is density, which of course is at the node level.
+
+## Digging into Groups: Zachary's Karate Club Dataset
+
+Let's get a quick look at our exemplar data sets. First, Zachary's Karate Club: Nodes are club members and edges are interactions. The network occurs just prior to a split between the Teacher (node 1) and the club president (node 34). This is the most common exemplar network.
+
+```{r message=FALSE}
+
+library(igraph)
+load("karate.rda")
+
+plot.igraph(karate)
+
+kdens <- make_ego_graph(karate, 1) %>%
+vapply(graph.density, numeric(1))
+
+df.dens <- data.frame(V(karate)$id, kdens)
+
+```
+
+## Defining Groups: Components, Cliques and Cores
+
+Several approaches to groups: components, bicomponents, cliques, and cores.
+
+- Component: Maximally connected subgraph
+    - Strong: Directed/ Weak: Undirected
+
+- Bicomponent: Maximally connected subgraph with at least two paths between each node.
+
+components(g) & biconnected.components(g)
+
+
+```{r, echo=TRUE}
+
+V(karate)$label <- c(1:34)
+
+comps <- components(karate)
+
+print(comps$csize)
+
+```
+
+## Defining Groups: Bicomponents
+
+```{r echo=TRUE}
+
+V(karate)$name <- V(karate)$label
+
+biconnected <- biconnected.components(karate)
+
+b1 <- biconnected$components[[1]]
+
+g2 <- induced.subgraph(graph=karate,vids=b1)
+
+plot.igraph(g2)
+
+
+```
+
+
+## Defining Groups: Cores
+
+- k-Cores: A subgraph where each node is connected to at least k nodes. Some scholars also think of coreness as a kind of centrality in very large networks.
+
+coreness(g)
+
+``` {r, echo=TRUE}
+kcore <- coreness(karate)    # Find the cores
+V(karate)$core <- kcore      # Add the cores as a vertex attribute
+
+library(RColorBrewer)
+coul = brewer.pal(4, "Set1") 
+ 
+# Create a vector of color
+my_color=coul[as.numeric(as.factor(V(karate)$core))]
+
+plot.igraph(karate, vertex.color=my_color)
+legend("bottomleft", legend=levels(as.factor(V(karate)$core)) , 
+col = coul , bty = "n", pch=20 , pt.cex = 3, cex = 1.5, 
+horiz = FALSE, inset = c(0.1, 0.1))
+ 
+```
+
+
+## Defining Groups: Cliques
+- Clique: A maximally connected subgraph of at least three nodes
+
+cliques(g)| max_cliques(g) | largest_cliques(g)
+
+```{r echo=TRUE}
+
+cliques <- largest_cliques(karate)
+
+c1 <- cliques[[1]]
+
+clique2 <- induced.subgraph(graph=karate,vids=c1)
+
+plot(clique2)
+
+```
+
+
+## Cohesion
+
+k-components: subgraph connectivity is defined by: 
+    - (a) the number of nodes that must be removed from the graph to disconnect the components.
+    - (b) the number of ties that must be removed from the graph to disconnect the components.
+
+Mathematically, a & b are equivalent
+
+Cut-points/articulation points are nodes whose removal results in the graph splitting apart.
+
+articulation.points(g)
+
+## Multiple Connectivity
+
+
+```{r echo=TRUE}
+
+art_points <- articulation.points(karate)
+
+rem <- delete.vertices(karate, art_points)
+
+plot(rem)
+
+art.points2 <- articulation.points(rem)
+
+rem2 <- delete.vertices(rem, art.points2)
+
+plot(rem2)
+
+```
+
+## Modularity Maximization
+
+General notion of the “groupiness” within a complete network: 
+    - generally thought of as describing a tendency towards having more in-group than out-group ties
+    - in-/out- groups are NOT defined on node characteristics 
+(ala homophily), but on tie-patterns
+    - typically estimated through divisive/agglomerative assignment
+
+## Newman-Girvan (fast-greedy) 
+
+Newman-Girvan is a divisive approach:
+- Find edge with highest betweenness & remove
+- Calculate community groups & fitness
+- Iterate over 1-2 (as many as N times)
+How to define “fitness”?
+- Community-based mixing matrix (proportion of edges w/in & across groups) 
+- Compute matrix “trace” (the sum of the main diagonal)
+    - High values indicate well identified partitions
+- Identify cross-group links (via row/col sums)
+- Modularity = sum of difference between diagonal & off diagonal elements
+    - High values indicate a more partitioned / segmented (modular) network
+    - Typically examined for local maximization
+
+```{r, echo=TRUE}
+fg_comms <- cluster_fast_greedy(karate)
+
+V(karate)$fg_comms <- fg_comms$membership
+
+plot.igraph(karate, vertex.color=V(karate)$fg_comms)
+
+```
+## Louvain (modularity optimization)
+
+Louvain (Blondel et al. 2008) is a modularity optimization approach: 
+-Optimize modularity on all nodes then iterate
+  - Does switching the node to another group increase modularity?
+- stop at solution that produces the largest increase in modularity
+- This has been optimized in the Leiden approach (see Leiden pacakge).
+
+```{r, echo=TRUE}
+
+lv_comms <- cluster_louvain(karate)
+
+V(karate)$lv_comms <- lv_comms$membership
+
+plot.igraph(karate, vertex.color=V(karate)$lv_comms)
+
+```
+
+## Walktrap (Random Walks)
+
+Walktrap community detection locates subgraphs via random walks. Nodes that are connected via short random walks will be clustered together.
+
+A random walk is exactly as it sounds: Imagine traversing nodes randomly along available edges.
+
+Infomap community detection also uses random walks.
+
+```{r, echo=TRUE}
+wt_comms <- cluster_walktrap(karate)
+
+V(karate)$wt_comms <- wt_comms$membership
+
+plot.igraph(karate, vertex.color=V(karate)$wt_comms)
+
+```
+## Blockmodels
+
+Most common blockmodels are relaxed forms of structural equivalence and allow us to ask which nodes are in similar positions. This has implications for hierachies and for the distributions of resources, such as information.
+
+The hierarchical aspect has been particularly useful in understanding organziations and the world system.
+
+Igraph doesn't implement blockmodels. So we will use sna package instead.
+
+To begin we load the required packages and the data:
+
+```{r, echo=T, message=F}
+library(network)
+library(sna)
+library(intergraph)
+
+knet <- asNetwork(karate)
+```
+
+Blockmodeling involves two major steps. 
+
+1. "A partition of actors in the network into discrete subsets called positions."
+2. "For exach pair of positions a statement of presence or absence of a tie or between positions on each of the relations." (Wasserman and Faust)
+
+After plotting the network in sna, we can use equiv.clust(g) to locate clusters. equiv.clust "computes the distances between all pairs of positions".
+
+```{r, echo=T}
+plot.network(knet, label=get.vertex.attribute(knet, "id"))	
+
+kclus <- equiv.clust(knet, mode="digraph")
+
+plot(kclus)
+```
+
+
+After inspecting the dendogram, we can construct our blockmodel with
+
+blockmodel(g, k=[# of Blocks])
+
+```{r, echo=T}
+kbm <- blockmodel(knet, kclus, k=4)		#looking at it made the 2-solution clear
+kbm
+plot.blockmodel(kbm)	# take a look
+
+kbm.mem <- kbm$block.membership
+
+```
+
+
+
+
+
+## Compare Modularity
+
+modularity(x, membership, weights = NULL, ...)
+
+```{r, echo=TRUE}
+
+modularity(karate, lv_comms$membership)
+
+modularity(karate, fg_comms$membership)
+
+modularity(karate, wt_comms$membership)
+
+modularity(karate, kbm.mem)
+
+
+```
+
+## Example: Legislative Networks
+
+![](moody_mucha_graph.jpg)
+
+## Example: Scientific Consensus (Shwed and Bearman 2010)
+
+- 1.Construct a citation network among literature corpus on identified topic.
+- 2.Identify “epistemic period” & “slice” network.
+- 3.Plot citation network modularity (changes) across (2).
+- 4.Declines/equilibrium identify arrival of scientific consensus
+
+
+![](schwed_bearman_graphs.jpg)
+
+
+## Example: Scientific Consensus (adams and Light 2015)
+
+- 1.Construct a citation network among literature corpus on identified topic.
+- 2.Identify “epistemic period” & “slice” network.
+- 3.Plot citation network modularity (changes) across (2).
+- 4.Declines/equilibrium identify arrival of scientific consensus
+
+
+![](adams_light.jpg)
+
+## Promising and Future Directions
+
+- Overlapping communities
+    - Palla et al. Nature 2005;435(7043):814-818.
+- Fuzzy memberships
+    - Zhao et al. PNAS 2011;108(18):7321-7326.
+- Temporal scales & Multiplex relationships
+    - Mucha Science 2012;328(5980):876-878.
+- Spatial dependence/independence
+    - Expert et al. PNAS 2011;108(19):7663-7668.
+- In Multimode networks
+    - Guimera et al. Phys. Rev. E 2007;76(3):036102.
+
+
+```{r, echo=F}
+
+
+#library(knitr)
+#purl("week6_cohesion_workshop.Rmd")
+
+```

@@ -1,0 +1,311 @@
+---
+title: 'Week 5: Introduction to Centrality'
+author: "Ryan Light with significant collaboration with jimi adams"
+date: "April 28, 2021"
+output:
+  html_document:
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Introduction to Centrality
+
+Background:  At the individual level, one dimension of position in the network can be captured through centrality.
+
+Conceptually, centrality is fairly straight forward: we want to identify which nodes are in the ‘center’ of the network.  In practice, identifying exactly what we mean by ‘center’ is somewhat complicated.
+
+Node Leve Measures: Degree, Closeness, Betweenness, Power
+
+Graph Level measures: Centralization
+
+## Digging into Groups: Florentine Marriage Network
+
+Let's get a quick look at our exemplar data set: 
+
+The Florentine Marriage Network. Here, the nodes are families and the edges are marital ties. Florence around 1430 was experiencing rapid economic and political transformation and we see two points of struggle between the Medicis and the Strozzis.
+
+We have this stored as a pajek file and can load it in the usual way.
+
+```{r message=FALSE}
+library(igraph)
+
+flomarriage <- as.undirected(read.graph("flomarriage.net", format="pajek"))
+
+wealth <- as.matrix(read.table("flowealth.clu", skip=1))	
+V(flomarriage)$wealth <- as.vector(wealth)					
+
+party <- as.matrix(read.table("floparty.clu"))	
+V(flomarriage)$party <- as.vector(party)				
+
+flomarriage <- delete_vertices(simplify(flomarriage), degree(flomarriage)==0)
+
+plot.igraph(flomarriage, vertex.color=as.factor(V(flomarriage)$party))
+```
+
+
+## Basic measure of "importance:" Degree
+
+If we want a method that allows us to distinguish “important” actors, intuitively we may rely on popularity: The actor with the most ties is the most important: So our old friend degree is back!
+
+Recall degree is the number of edges incident to a node.
+
+
+```{r  message=FALSE, echo=TRUE}
+
+degree_centrality <- degree(flomarriage)
+
+```
+
+
+```{r }
+plot.igraph(flomarriage, vertex.size=degree_centrality*5,
+            edge.arrow.size=.5, vertex.color=as.factor(V(flomarriage)$party))
+
+```
+
+
+## Degree as a graph property
+
+We can also construct degree as a graph property:
+
+
+```{r  message=FALSE, echo=TRUE}
+
+centralization.degree(flomarriage, normalized=T)
+
+#print(cd$centralization)
+#print(vcd$centralization)
+```
+
+Where $res are the degree scores, centralization is the graph level index, and the max is the denominator in the normalization. 
+
+## Closeness Centrality
+
+A second measure of centrality is closeness centrality.  An actor is considered important if he/she is relatively close to all other actors.
+
+Closeness is based on the inverse of the geodesic path - or shortest distance - of each actor to every other actor in the network. This is typically normalized.
+
+```{r  message=FALSE, echo=TRUE}
+
+close_centrality <- closeness(flomarriage, normalized=TRUE, mode="ALL")
+
+cc <- centralization.closeness(flomarriage)
+
+cc$centralization
+
+```
+
+```{r}
+
+
+plot.igraph(flomarriage, vertex.size=close_centrality*50, 
+            edge.arrow.size=.5,vertex.color=as.factor(V(flomarriage)$party))
+
+```
+
+## Betweenness Centrality
+
+Borgatti and Everett (2020) call degree and closeness radial measures of centrality because they focus upon each node as an endpoint. Some questions ask us to consider the potential for nodes to mediate the flow of bits (e.g. information, disease, etc.). Betweenness centrality is a medial measure as it asks which nodes sit between other nodes. The score is the number of geodesics that a node sits on in a graph. 
+
+
+```{r message=FALSE, echo=TRUE}
+
+between_centrality <- betweenness(flomarriage)
+
+```
+
+```{r}
+
+plot.igraph(flomarriage, vertex.size=between_centrality/2, 
+            edge.arrow.size=.5, vertex.color=as.factor(V(flomarriage)$party))
+
+```
+
+## Power and Influence Centrality
+
+We may also conceive of power as a measure of proximity. The powerful are connected to other powerful people. There are a series of "beta" centrality scores that weigh the power of proximate nodes: 1-step nodes power is weighed more heavily than 2-step nodes and so on.
+
+* Bonacich Power Centrality:  Actor’s centrality (prestige) is equal to a function of the prestige of those they are connected to.  Thus, actors who are tied to very central actors should have higher prestige/ centrality than those who are not. 
+
+* Eigenvector centrality is often conceptualized as a capturing infleunce. Eigenvector centrality is a relative measure where connections to high-scoring nodes are more highly weighted. PageRank is a version of eigenvector centrality.
+
+
+```{r message=FALSE, echo=TRUE}
+
+bonacich_centrality <- power_centrality(flomarriage)
+
+eig_centrality <- eigen_centrality(flomarriage)
+
+ce <- centr_eigen(flomarriage)
+
+print(ce$centralization)
+
+```
+
+
+```{r message=FALSE, echo=FALSE}
+
+plot.igraph(flomarriage, vertex.size=eig_centrality$vector*10,
+            edge.arrow.size=.5, vertex.color=as.factor(V(flomarriage)$party))
+```
+
+
+## Quick addition: K-Core Decomposition
+
+This can be an interesting way to think about kind of subgraph groupiness as a type of centrality. The k-core is the maximal subgraph where each vertex has at least k degrees. This is useful for very large graphs like Gonzales-Bailon et al. (2011). 
+
+```{r, echo=T}
+
+coreness(flomarriage)
+
+median(coreness(flomarriage))
+
+```
+
+## Working with Centrality
+
+In recent work, Borgatti (2003; 2005) discusses centrality in terms of two key dimensions:  
+
+Substantively, the key question for centrality is knowing what is flowing through the network.  The key features are:
+Radial: Whether the actor retains the good to pass to others (Information, Diseases) or  medial: whether they pass the good and then lose it (physical objects) 
+
+Whether the key factor for spread is distance (disease with low pij) or multiple sources (information)
+
+The off-the-shelf measures do not always match the social process of interest, so researchers need to be mindful of this.
+
+
+## Working with Centrality
+
+![](borgatti_centrality.jpg)
+## Let's look at the relationship between scores
+
+First we can look at some bivariate relationships. 
+
+```{r, echo=T}
+
+ecent <- eig_centrality$vector
+
+flo.df <- data.frame(V(flomarriage)$name, V(flomarriage)$party, V(flomarriage)$wealth, 
+                     degree(flomarriage), closeness(flomarriage), betweenness(flomarriage),   eig_centrality$vector)
+
+library(dplyr)
+
+flo.df <- rename(flo.df, c(family = 1, party=2, wealth=3, degree=4, close=5, between=6, eig=7))
+
+flo.df <- flo.df %>% mutate(medici=recode(party, 'Medici'='1', "Split"='0', 'Oligarch'='0'))
+
+library("Hmisc")
+
+nflo.df <- flo.df[,3:8]
+
+cmat <- rcorr(as.matrix(nflo.df))
+
+cmat
+
+```
+
+
+We can also evaluate the relationship between wealth and centrality using OLS regression.
+
+```{r, echo=T}
+
+wlth.reg <- lm(wealth~medici + between, data=flo.df)
+
+summary(wlth.reg)
+
+```
+
+We can graphically compare centrality scores to how constrained families are within the network.
+
+```{r}
+
+library(ggplot2)
+library(ggrepel)
+
+constraint <- constraint(flomarriage) 
+
+prty <- as.numeric(as.factor(V(flomarriage)$party))
+
+between_centrality <- betweenness(flomarriage)
+
+degree <- degree(flomarriage)
+
+
+
+becon <- data.frame(between=between_centrality, cons=constraint, name=V(flomarriage)$name, party=prty, degree=degree)
+
+
+flo.df$cons <- constraint(flomarriage)
+
+flo.df$prty <- as.numeric(as.factor(flo.df$party))
+
+ggplot(flo.df, aes(x=between, y=cons, label=family)) + 
+  geom_point() + geom_label_repel(aes(label=family, fill = factor(prty+4)),  max.overlaps=Inf)+
+  geom_smooth(method='lm') +
+    scale_fill_manual(values=c("tomato", "darkgoldenrod", "deepskyblue"), 
+                       name="Party",
+                       breaks=c("5", "6", "7"),
+                       labels=c("Medici", "Oligarchs", "Split Loyalists"))+
+                         theme_bw() 
+  
+
+
+```
+
+## Degree by Constraint
+
+```{r, echo=T}
+
+
+
+ggplot(flo.df, aes(x=degree, y=cons, label=family)) + 
+  geom_point() + geom_label_repel(aes(label=family, fill = factor(prty+4)),  max.overlaps=Inf)+
+  geom_smooth(method='lm') +
+  scale_fill_manual(values=c("tomato", "darkgoldenrod", "deepskyblue"), 
+                       name="Party",
+                       breaks=c("5", "6", "7"),
+                       labels=c("Medici", "Oligarchs", "Split Loyalists"))+
+                         theme_bw() 
+   
+
+
+
+```
+
+
+## Wealth by Influence
+
+
+```{r, echo=T}
+
+ggplot(flo.df, aes(x=wealth, y=eig, label=family)) + 
+  geom_point() + 
+  geom_label_repel(aes(label=family, fill = factor(prty+4)),  max.overlaps=Inf) +
+   geom_smooth(method='lm') +
+  scale_fill_manual(values=c("tomato", "darkgoldenrod", "deepskyblue"), 
+                       name="Party",
+                       breaks=c("5", "6", "7"),
+                       labels=c("Medici", "Oligarchs", "Split Loyalists"))+
+                         theme_bw() 
+
+
+```
+
+
+## Exploring the wide world of centrality!
+
+Check out the CINNA package for an off-the-shelf centralities that you read about and want to explore. It has a lot of options!
+
+```{r, echo=T}
+
+library(CINNA)
+
+proper_centralities(flomarriage)
+
+
+```
+#library(knitr)
+#purl("week5_centrality_workshop.Rmd")

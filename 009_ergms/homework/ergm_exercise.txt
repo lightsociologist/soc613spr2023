@@ -1,0 +1,53 @@
+ERGM Exercise.
+
+What factors contribute to the structure of an advice and collaboration network?
+
+The data for this exercise consist of doctors sharing information. The data were collected in 1966 be a team 
+led by James Coleman (Coleman, Katz & Menzel). The group collected data on the doctors' adoption of a new
+drug, tetracylcine. 
+
+They were asked: When you need information or advice about questions of therapy where do you usually turn?" 
+
+"And who are the three or four physicians with whom you most often find yourself discussing cases or therapy 
+in the course of an ordinary week – last week for instance?" 
+
+And third: "Would you tell me the first names of your three friends whom you see most often socially?"
+
+I have summed these matrices in the cmk_mat matrix stored in CKM_data.Rdata.
+
+Additional variables per doctor are stoded in the CKM dataframe. We will be using "community" and "city." See codes below.
+
+First, make a network object in statnet and draw the graph.
+
+We will see that there are four main components.
+
+Let's try to estimate the factors contributing to the Peoria subgraph.
+
+First, shrink the graph(hint: get.inducedSubgraph(ckm_net,v=which(ckm_net%v%'city'==1))
+
+Now answer the following questions.
+
+1. Build a baseline model that describes how density relates to the Peoria Doctors Graph
+
+2. Add the effect of homophily on time in the community
+
+3. Add the effect of local clustering and control for any model degeneracy.
+
+4. Does reciprocity (or mutuality) play a role in structuring this network? 
+
+
+The codes are:
+
+City (: 1 Peoria, 2 Bloomington, 3 Quincy, 4 Galesburg)
+
+Community:
+
+How long have you been practicing in this community?
+
+1	a year or less
+2	more than a year, up to two years
+3	more than two years, up to five years
+4	more than five years, up to ten years
+5	more than ten years, up to twenty years
+6	more than twenty years
+9	no answer

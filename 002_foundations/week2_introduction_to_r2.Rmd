@@ -1,0 +1,407 @@
+---
+title: 'Week 2: Introduction to R and Igraph'
+author: "Ryan Light (and jimi adams and Jim Moody and several others and Dr. Google)"
+date: "April 5, 2021"
+output:
+  html_document:
+    df_print: paged
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# A few R Basics
+
+First, lets look at some basic operators in R. This tracks nicely with Datacamp's Introduction to R and it is recommended that you check that out (or an equivalent) to get a hang of some of these basic operations.
+
+## Arithmetic Operators
+
+You can use R as a caculator with arithmetic operators:
+
+```{r}
+3+4
+```
+
+You can use R to assign values (and print value):
+
+```{r}
+a <- 3 + 4
+print(a)
+```
+
+## Logical Operators
+
+Logical operators can tell us whether something is true or false and is useful for when we are working in functions.
+
+Operators | Operation 
+----------| ------------- 
+==       |"is equal to"
+!=	      |"not equal"
+<        | "less than"
+>        |"greater than"
+<=       | "less than or equal to"
+>=       | "greater than or equal to"
+
+Examples
+
+```{r}
+8 == 8
+
+8 != 8
+
+TRUE > FALSE
+
+"Red" != "Red"
+
+7 <= 100
+
+1 >= 100
+```
+
+## Functions
+
+Functions drive much of what happens in R. Many functions operate within packages and are "called" from them, but we can also make our own.
+
+The first step is to define the function.
+
+The basic form looks like this:
+
+```{r}
+fake.function <- function(vars){
+    print("thing to make")
+} 
+
+```
+
+And then you call the function:
+
+```{r}
+fake.function(1)
+```
+
+Or something better:
+
+```{r}
+square.sum.variables <- function(a,b){
+  z <- (a+b)^2
+  print(z)
+} 
+square.sum.variables(1,2)
+```
+Obviously this can get more complicated:
+
+```{r}
+anums <- c(1:5) #This is a vector
+bnums <- c(2:6) #This is a vector
+
+square.sum.variables(anums, bnums)
+```
+
+## Object management
+These help with your workspace. If you are using projects, these may not be so necessary, but good to keep things cleaned up.
+
+ function       | description
+ ---------      | ------------- 
+ ls()		        | list all objects in the workspace
+ class()        | returns the type of object
+ rm(e)		      | remove a specific object
+ ls()		        | list all objects in the workspace
+ rm(list=ls())	| removes all objects in workspace. 
+                
+
+## Calling Help Files
+Often helpful to look at help material and there are several ways to do so. You can also google these documents which can be an easy way to access.
+
+  function      | description
+  ---------     | ------------- 
+ help.start()	| launch help in web browser
+ help(sqrt) 		| get help for specified function
+ ?sqrt					| same as above
+ help.search('square root')	| search help pages for topics
+ ??sqrt				| same as help.search()
+
+## Objects and Object Classes
+Perhaps the biggest difference between R and statistics packages is the variety of objects that R uses to store the stuff that you make. From vectors, to matrices, dataframes, to package-specfic objects, we will create objects as a kind of the fuel to the function's engine.
+
+To begin the function "class" helps us to identify what kind of object we are working with. We can see this with the anums object we created above.
+
+```{r}
+class(anums)
+```
+
+This is an integer vector. We can make vectors of other elements using c() as we used with anums and bnums.
+There are a several different types of vectors including numeric (integer is a subset of numeric) and character vectors. R assigns a class to each vector.
+
+```{r}
+
+#Let's make a few variables
+a <- 5
+b <- 6
+c <- 7
+
+# c() combines elements into a vector
+e <- c(a, b, c)				
+
+class(e)
+
+# can also be used on character objects
+
+f <- c("This", "is", "a", "character", "vector")	
+
+# And we can combine classes
+g <- c(e, f)				
+print(g)
+class(g)			
+
+```
+
+We can also create vectors of sequences that are particularly helpful when you are using functions. Again, there are several ways of creating sequence vectors:
+
+```{r}
+# a sequence from 1 to 10, by 1
+seq <- c(1:10)
+
+# assigning a sequence with increments !=1
+seq2 <- seq(2,10, by=2)		
+
+# can also be reversed
+seq2rev <- seq(10,2, by=-1)	
+
+# repeat a sequence twice
+seq_twice <- rep(1:5,times=2)	
+
+# repeat a sequence twice, elementwise
+seq_dbl <- rep(1:5,each=2)	
+
+```
+
+And we can call particular elements and use logical operators to identify aspects of the sequences (or other vectors)
+```{r}
+# the 4th element in the assigned vector seq_dbl
+seq_dbl[4]					
+
+# the negative operator removes specified element(s) from a vector
+seq[-c(4:5)]				
+
+# is each element in seq greater tha  n 5
+seq >5					
+any(seq>5)					# are ANY elements of seq greater than 5
+all(seq>5)					# are ALL elements of seq greater than 5
+which(seq>5)				# returns indices of elements that are TRUE
+
+```
+
+Another R object class is the matrix. Matrices are important in social network analysis as many of our networks are stored as matrices. Matrix algebra is used for constructing mixing tables (such as gender or racial overlaps) and we also use matrix algebra for "projecting" two-mode (e.g. person-to-group networks) to one-mode networks (person-to-person through common group membership). The matrix function makes matrices (Note the Matrix package is also useful for constructing (and storing) sparse matrices when you have many 0s for a network of many nodes)
+
+```{r} 
+h<-matrix(data=c(1:36), nrow=6)	# defines a matrix, number of columns inferred, NOTE that the default is to h				
+
+h[4,2]					# returns the element in the 4th row, 2nd column
+h[3,]						# returns the 3rd row as a vector
+h[,3]						# returns the 3rd column as a vector
+#h[,-4]					# removes the 4th column (surpressed)
+#h[-2,]					# removes the 2nd row (surpressed)
+h[3,6] <- 0				# replace an element
+t(h)						# transpose a matrix (swap rows & columns)
+h %*% t(h)				# matrix multiplication (no output)
+
+```
+
+This brings us to data frames. Data frames are analogous to spreadsheets or the other types of grids that comprise "data" in most statistical programs. The typical data frame has rows that consist fo cases and columns that consist of different variables. The dominance of spreadsheets for social scientific analysis increases the appeal of pushing things to data frames and indeed the tidy movement (see the tidyr package) in R is in part based on the cognitive appeal of data frame like structures.
+
+My default is to push things into data frames when I'm in doubt.
+
+```{r}
+i <- data.frame(age=31:35, job=c(T,T,T,T,F),name=LETTERS[1:5])	# assign
+i[,2]						# works with standard matrix operators
+i$name					# the $ operator allows calls by labels
+i <- data.frame(age=31:35, job=c(T,T,T,T,F),name=LETTERS[1:5], stringsAsFactors=FALSE)	# getting rid of "factors"
+
+ab_nums <- as.data.frame(cbind(anums, bnums))
+
+```
+
+## Introduction to Igraph
+
+Igraph is a powerful network tool for visualising and analyzing social networks. We will use igraph for many tasks in conjunction with a few other packages specific to social network analysis (such as statnet) and several others throughout the course.
+
+To back up a bit, one of the cool features of R is the fact that it is open source. Scholars can contribute R in more or less real time and, therefore, state-of-the-art statistics are quicker to the wider community than through expensive programs with intense gatekeeping and less incentive to contribute.
+
+The main way that scholars contribute to R is through the development of packages. While base R has very powerful tools for analysis in and of itself, R packages increase the power of R exponentially and in many ways make R easier to use.
+
+Each package needs to be installed into R prior to use. Note: You can comment out code with #. I do that here to prevent running the install.
+
+```{r}
+#install.packages(igraph)
+```
+
+You only need to do this once if there are no updates. When you update R to the latest version, you should be sure to check for package updates.
+
+```{r}
+#update.packages("igraph")
+```
+
+Again, you don't have to do this every time you use R or want ot use igraph.
+
+*You* do have to load packages outside of base R into each session that you begin. 
+
+```{r}
+library(igraph)
+```
+
+### Bringing Data Into igraph
+
+There are many different ways to bring data into igraph. Remember that the two main ways to store network data is either an edge list (two columns: one sender, one receiver) or an adjacency matrix (i rows and j columns are the same people and the cells indicate a connection between the i row and j column). If you can make an edgelist or a matrix you can load the data into igraph.
+
+### Bringing Data Into igraph: importing csv Files
+
+First, we can bring in the data into r using the base function read.csv(). The first example is an undirected toy network. Note that we will keep the column names as indicated by "header=T"
+
+```{r}
+toy.undirected <- read.csv("data/simple_undirected.csv", header=T)	 # reading in the undirected mixing example
+
+print(toy.undirected)
+```
+
+
+Now we need to clean the data up a bit to make an edge list. If we look above, we can see another way of storing network data - the adjacency list. Adjacency lists consist of nodes and the alters that are adjacent to them. So person 6 is connected to alters 4 and 5. We first separate the adjacency list and the nodal attribute. We can use the row() function to transform the adjacency list into a edge list.
+
+```{r}
+
+ties<- subset(toy.undirected,select=c(alt1,alt2,alt3))	# stripping off just the adjacency list
+nodes <- subset(toy.undirected,select=c(id,attr1))		# stripping off just the attributes
+toy.df <- data.frame(snd = row(ties)[!is.na(ties)], rcv = ties[!is.na(ties)])	
+
+```
+
+Igraph requires that we make an igraph object and there are several ways of doing so. In this example, we use graph.data.frame() to make this object. We indicate that the network is undirected and point igraph to the nodes data frame for information on nodal attributes.
+
+```{r}
+toy.g <- graph.data.frame(toy.df, directed=F, vertices=nodes)	# converting to an igraph “graph” object
+
+
+```
+
+We can use plot.igraph() function to visualize the graph. We use the attribute that was introduced from nodes to color the nodes (Be sure it’s the same, *2 is to avoid using the same color for the label/node color).
+
+```{r fig.width=6, fig.height=4}
+plot.igraph(toy.g, vertex.color=V(toy.g)$attr1*2)	
+```
+
+The above toy graph consisted of undirected ties. Some graphs have directed ties. Let's check out how igraph plots these.
+
+Note we can also use the graph_from_adj_list function to bring adjacency lists into igraph. If you want an undirected graph, then mode="all". And if you want a directed graph of sent ties, then mode="out".
+
+```{r}
+toy.directed <- read.csv("data/simple_directed.csv", header=T)	
+nodes <- subset(toy.directed,select=c(id,attr1))		
+ties <- subset(toy.directed,select=c(alt1,alt2,alt3))	
+
+ties[is.na(ties)] <- 0
+
+toy.g.directed <- graph_from_adj_list(ties+1, mode="out")
+
+```
+
+You can store attributes as follows (make sure the order is the same)
+
+```{r}
+
+V(toy.g.directed)$attribute <- nodes$attr1
+
+```
+
+And plot the directed graph
+
+```{r fig.width=6, fig.height=4}
+
+plot.igraph(simplify(toy.g.directed), vertex.color=V(toy.g.directed)$attribute*2)
+ 
+V(toy.g.directed)         # lists the specified vertices
+E(toy.g.directed)					# gives the edgelist of the specified graph
+
+```
+
+### Bringing Data into igraph: edge lists
+
+You can also write edge lists directly into igraph. Igraph will read each pair as an edge. Here we have indicated an undirected graph by directed=F.
+
+```{r}
+edge.list <- c(1,3, 2,3, 3,4, 4,5, 4,6, 5,6)
+
+exa_g <- graph(edge.list, directed=F)	
+V(exa_g)$attr1 <- c(1,1,1,0,0,0)		# attach the attribute vector
+plot.igraph(exa_g, vertex.color=V(exa_g)$attr1*2)	# how’s it look?
+```
+
+### Bringing Data into igraph: read.graph
+
+We can also bring data into igraph via other programs like the networks program Pajek. Pajek is a popular program used to visualize and analyze social networks. The file extensions for Pajek include .net for the network file and .clu for attributes which are often kept in separate files.
+
+read.graph() function will read networks from other programs. format= identifies the type of file (e.g. the program in which the file was generated) 
+
+This Valente data captures the friendship ties in a fifth grade classroom. 
+
+```{r}
+valente <- read.graph("data/valente.net", format="pajek")	# getting the adjacency matrix
+```
+
+Next, we bring the gender attribute (valente.clu) file from pajek into R. We skip the first line (skip=1) because pajek files include one additional line that is not needed.
+
+```{r}
+valente <- read.graph("data/valente.net", format="pajek")	
+gender <- as.matrix(read.table("data/valente.clu", skip=1))
+
+V(valente)$gender <- as.vector(gender)				# attaching the attribute, make numeric
+```
+
+Let's look at the graph. What can we learn about this classroom given the friendship nominations? Note the attribute key: blue=girls and white=boys
+
+```{r}
+plot.igraph(valente, vertex.color=V(valente)$gender*2, layout=layout.fruchterman.reingold)	
+```
+
+### Bringing Data into igraph: two-mode data
+
+In a few weeks we will talk about duality and two-mode networks. Here is a quick example of how we might bring a two-mode network into igraph.
+
+I've collected data on Star Wars movies from imdb.com. I copied and pasted the top 15 actors in each of the first six movies into excel and saved as a csv.
+
+```{r}
+star.wars <- read.csv("data/star_wars.csv" , header=TRUE)
+
+sw.g <- graph.data.frame(star.wars)
+
+print(sw.g)
+
+bipartite.mapping(sw.g)
+
+V(sw.g)$type <- bipartite.mapping(sw.g)$type
+
+V(sw.g)$color <- ifelse(V(sw.g)$type, "lightblue", "salmon")
+V(sw.g)$shape <- ifelse(V(sw.g)$type, "circle", "square")
+E(sw.g)$color <- "lightgray"
+
+plot.igraph(sw.g, layout=layout.fruchterman.reingold, vertex.label.color="black", edge.arrow.size=.5)
+
+```
+How to read the Igraph code:
+
+"The first line always starts with IGRAPH, showing you that the object is an igraph graph. Then a four letter long code string is printed. The first letter distinguishes between directed (‘D’) and undirected (‘U’) graphs. The second letter is ‘N’ for named graphs, i.e. graphs with the name vertex attribute set. The third letter is ‘W’ for weighted graphs, i.e. graphs with the weight edge attribute set. The fourth letter is ‘B’ for bipartite graphs, i.e. for graphs with the type vertex attribute set." (from http://igraph.org/r/doc/print.igraph.html)
+
+### Family Tree Example
+
+The first family tree has just one step and one tie type
+```{r} 
+
+
+fam.edge.list <- c("Ryan","Henry",  "Mike","Ryan",  "Linda","Ryan")
+fam_g <- graph(fam.edge.list, directed=T)	
+fam_g$label = names(c("1" = "Henry", "2"="Ryan", "3"="Mike", "4"="Linda"))
+
+plot.igraph(fam_g)# how’s it look?
+
+
+```

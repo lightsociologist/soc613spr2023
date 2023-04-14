@@ -1,0 +1,125 @@
+---
+title: "Family Tree Networks"
+format: 
+  html:
+    code-fold: true
+    embed-resources: true
+execute:
+  warning: false
+editor: source
+---
+
+Here are a few options for trying to play with constructing family networks using igraph and ggraph. There are likely better family tree packages in R, but the goal here is to explore family trees using the packages that we will focus on in the class.
+
+First, we need to load packages.
+
+```{r, message=FALSE}
+library(ggraph)
+library(igraph)
+```
+
+## One Relationship, One Step Network
+
+Next, let's look at my one relationship, one-step network. This creates the node data - the list of family members - and the edge data - the relationships. The last function makes a network from these two data frames.
+
+```{r, message=F}
+
+family1 <- data.frame(name=c("Mike", "Linda", "Ryan", "Henry"))
+
+relations1 <- data.frame(
+  parent = c("Mike", "Linda", "Ryan"),
+  child = c("Ryan", "Ryan", "Henry"))
+
+tree1 <- graph_from_data_frame(relations1, directed = TRUE, vertices=family1)
+```
+
+Now we can draw the graph with a hierarchical layout and my parents as the root in igraph.
+
+```{r, message=F, fig.height=8, fig.width=8}
+#| label: fig-1mode_1rel
+#| fig-cap: Ryan's One Step, One Relationship Network
+
+plot(tree1, layout=layout.reingold.tilford(tree1, root=c("Mike", "Linda")))
+```
+
+@fig-1mode_1rel shows my one-step family tree network with only parental ties. The network has four nodes and three edges.
+
+## One Relationship, Two-Step Network
+
+Next, let's look at my one relationship, two-step network. I keep adding to the data to show how this works. Also notice that I added another species to the data and an additional column in the node set (family2) to indicate whether the node is a dog or not.
+
+```{r, message=F}
+
+family2 <- data.frame(name=c("Mike", "Linda", "Ryan", "Henry", "Bruce", "Mary", "Melvin", "Nancy", "Jill", "Randy", "Peter"), 
+                      dog=c(0,0,0,0,0,0,0,0,0,0,1))
+
+relations2 <- data.frame(
+  parent = c("Mike", "Linda", "Mike", "Linda", "Ryan", "Ryan", "Jill", "Jill", "Bruce", "Mary", "Melvin", "Nancy"),
+  child = c("Ryan", "Ryan", "Randy", "Randy", "Henry", "Peter", "Henry", "Peter", "Linda", "Linda", "Mike", "Mike"))
+
+tree2 <- graph_from_data_frame(relations2, directed = TRUE, vertices=family2)
+
+```
+
+Now we can draw the graph with a hierarchical layout and my grandparents as the root. Note that we can use vertex.color to vary the color of the nodes based on whether a node represents a dog or not.
+
+```{r, message=F, fig.height=8, fig.width=8}
+#| label: fig-2mode_1rel
+#| fig-cap: Ryan's Two Step, One Relationship Network
+
+plot(tree2, vertex.color=V(tree2)$dog+1, flayout=layout.reingold.tilford(tree2, root=c("Bruce", "Mary", "Melvin", "Nancy")))
+```
+
+This two-step network, @fig-2mode_1rel, has eleven nodes and twelve edges.
+
+## Two Relationship, Two-Step Network
+
+We can add marital relationships as a new edge type. This network is now multiplex. These are reciprocated directed ties and are an example of mutuality. We can indicate the different types of edges with a new column in edge or relations data frame and plot the graph in igraph has we have done before. Notice that we are using edge.color to vary the color of edges by relationship type.
+
+```{r, message=F, fig.height=8, fig.width=8}
+#| label: fig-2mode_2rel
+#| fig-cap: Ryan's Two Step, Two Relationship Network
+
+family3 <- data.frame(name=c("Mike", "Linda", "Ryan", "Henry", "Bruce", "Mary", "Melvin", "Nancy", "Jill", "Randy", "Peter",
+                             "Tom", "Marilyn"), dog=c(0,0,0,0,0,0,0,0,0,0,1,0,0))
+
+relations3 <- data.frame(
+  snd = c("Mike", "Linda", "Mike", "Linda", "Ryan", "Ryan", "Jill", "Jill", "Bruce", "Mary", "Melvin", "Nancy", "Ryan", "Jill", "Mike", "Linda", 
+          "Mary", "Bruce", "Nancy", "Melvin", "Tom", "Marilyn"),
+  rcv = c("Ryan", "Ryan", "Randy", "Randy", "Henry", "Peter", "Henry", "Peter", "Linda", "Linda", "Mike", "Mike", "Jill", "Ryan", "Linda", "Mike", 
+          "Bruce", "Mary", "Melvin", "Nancy", "Jill", "Jill"),
+  etype = c("parent", "parent", "parent", "parent", "parent", "parent", "parent", "parent", "parent", "parent", "parent", "parent", "marriage", "marriage"
+            , "marriage", "marriage", "marriage", "marriage", "marriage", "marriage", "parent", "parent"))
+
+
+relations3$enum <- as.numeric(as.factor(relations3$etype))
+
+tree3 <- graph_from_data_frame(relations3, directed = TRUE, vertices=family3)
+
+plot(tree3, vertex.color=V(tree3)$dog+1, edge.color=E(tree3)$enum+3, flayout=layout.reingold.tilford(tree3, root=c("Bruce", "Mary", "Melvin", "Nancy")))
+
+```
+
+@fig-2mode_2rel graph expands to Jill's parents as the marital tie increases here closeness to me by a step. This graph has 13 nodes and 22 edges.
+
+Next we can also draw this graph in ggraph. Here instead of the hierarchical layout, we use kamada-kawai which is a force directed layout. We will talk about these layouts in week 3. Ggraph offers the same kind of flexibility as ggplot2.
+
+```{r, message=F, fig.height=8, fig.width=10}
+#| label: fig-ggraph
+#| fig-cap: Ryan's Two Step, Two Relationship Network in ggraph
+
+ggraph(tree3, layout = 'kk') +
+  geom_edge_link(aes(color = etype),  arrow = arrow(length = unit(3, 'mm')),  end_cap = circle(3, 'mm'), alpha = 0.8) + 
+  geom_node_point(aes(color = as.factor(dog)), size=6) +
+  geom_node_point(shape=1, color="black", size=6) +
+  geom_node_text(aes(label = V(tree3)$name), repel = TRUE, max.overlaps=Inf) + 
+  scale_color_manual(name = "Species",
+                     values = c("0" = "yellow",
+                                "1" = "green"),
+                     labels = c("Human", "Dog")) +
+  theme_void() +
+  labs(title="Ryan's Family Tree")
+
+```
+
+@fig-ggraph shows some of the flexibility of ggraph and is definitely better in this case with the ease of including legends (although multiple legends aren't perfectly easy to edit.
