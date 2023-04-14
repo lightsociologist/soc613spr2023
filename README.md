@@ -6,9 +6,27 @@ The class is taught by [Ryan Light](https://ryanlight.netlify.app/).
 
 ## Weekly Slides, Workshop Notes, and Homework Sets
 
+Slides: [.html][.qmd]
+
+Workshop: [.html[.qmd]
+
+Homework:
+
 ### 001 Introductions
 
+Slides: [.html][.qmd]
+
+Workshop: [.html[.qmd]
+
+Homework:
+
 ### 002 Foundations and Theoretical Perspectives
+
+Slides: [.html][.qmd]
+
+Workshop: [.html[.qmd]
+
+Homework:
 
 ### 003 Collecting and Visualizing Network Data
 
