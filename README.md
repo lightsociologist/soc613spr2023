@@ -4,7 +4,7 @@ Welcome to the online home of Sociology 613, a class on social network analysis 
 
 The class is taught by [Ryan Light](https://ryanlight.netlify.app/).
 
-**001 Introductions
+**001 Introductions**
 
 ## 002 Foundations and Theoretical Perspectives
 
