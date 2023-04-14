@@ -6,7 +6,7 @@ The class is taught by [Ryan Light](https://ryanlight.netlify.app/).
 
 ## Weekly Slides, Workshop Notes, and Homework Sets
 
-**001 Introductions**
+### 001 Introductions
 
 **002 Foundations and Theoretical Perspectives**
 
