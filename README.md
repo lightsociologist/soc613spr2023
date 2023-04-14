@@ -4,22 +4,24 @@ Welcome to the online home of Sociology 613, a class on social network analysis 
 
 The class is taught by [Ryan Light](https://ryanlight.netlify.app/).
 
+## Weekly Slides, Workshop Notes, and Homework Sets
+
 **001 Introductions**
 
-## 002 Foundations and Theoretical Perspectives
+**002 Foundations and Theoretical Perspectives**
 
-## 003 Collecting and Visualizing Network Data
+**003 Collecting and Visualizing Network Data**
 
-## 004 Network Composition, Distance, and Balance
+**004 Network Composition, Distance, and Balance**
 
-## 005 Centrality and Power
+**005 Centrality and Power**
 
-## 006 Cohesion and Community Detection
+**006 Cohesion and Community Detection**
 
-## 007 Two-Mode Networks
+**007 Two-Mode Networks**
 
-## 008 Diffusion and Preliminary Statistics
+**008 Diffusion and Preliminary Statistics**
 
-## 009 Introduction to Statistical Models
+**009 Introduction to Statistical Models**
 
-# 010 Oddities, Advanced Models, and Next Steps
+**010 Oddities, Advanced Models, and Next Steps**
