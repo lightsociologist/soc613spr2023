@@ -8,17 +8,9 @@ The class is taught by [Ryan Light](https://ryanlight.netlify.app/).
 
 ### 001 Introductions
 
-**002 Foundations and Theoretical Perspectives**
+### 002 Foundations and Theoretical Perspectives
 
-**003 Collecting and Visualizing Network Data**
-
-Slides: [.html][.qmd]
-
-Workshop: [.html[.qmd]
-
-Homework:
-
-**004 Network Composition, Distance, and Balance**
+### 003 Collecting and Visualizing Network Data
 
 Slides: [.html][.qmd]
 
@@ -26,7 +18,7 @@ Workshop: [.html[.qmd]
 
 Homework:
 
-**005 Centrality and Power**
+### 004 Network Composition, Distance, and Balance
 
 Slides: [.html][.qmd]
 
@@ -34,7 +26,7 @@ Workshop: [.html[.qmd]
 
 Homework:
 
-**006 Cohesion and Community Detection**
+### 005 Centrality and Power
 
 Slides: [.html][.qmd]
 
@@ -42,7 +34,7 @@ Workshop: [.html[.qmd]
 
 Homework:
 
-**007 Two-Mode Networks**
+### 006 Cohesion and Community Detection
 
 Slides: [.html][.qmd]
 
@@ -50,7 +42,7 @@ Workshop: [.html[.qmd]
 
 Homework:
 
-**008 Diffusion and Preliminary Statistics**
+### 007 Two-Mode Networks
 
 Slides: [.html][.qmd]
 
@@ -58,7 +50,7 @@ Workshop: [.html[.qmd]
 
 Homework:
 
-**009 Introduction to Statistical Models**
+### 008 Diffusion and Preliminary Statistics
 
 Slides: [.html][.qmd]
 
@@ -66,7 +58,15 @@ Workshop: [.html[.qmd]
 
 Homework:
 
-**010 Oddities, Advanced Models, and Next Steps**
+### 009 Introduction to Statistical Models
+
+Slides: [.html][.qmd]
+
+Workshop: [.html[.qmd]
+
+Homework:
+
+### 010 Oddities, Advanced Models, and Next Steps
 
 Slides: [.html][.qmd]
 
