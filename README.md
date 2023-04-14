@@ -17,72 +17,72 @@ Homework: [.pdf](https://github.com/lightsociologist/soc613spr2023/tree/main/hom
 
 ### 002 Foundations and Theoretical Perspectives
 
-Slides: [.html][.qmd]
+Slides: [.html] | [.qmd]
 
-Workshop: [.html[.qmd]
+Workshop: [.html] | [.qmd]
 
 Homework: [.pdf](https://github.com/lightsociologist/soc613spr2023/tree/main/homework/002hw/w2_homework_set.pdf) 
 
 ### 003 Collecting and Visualizing Network Data
 
-Slides: [.html][.qmd]
+Slides: [.html] | [.qmd]
 
-Workshop: [.html[.qmd]
+Workshop: [.html] | [.qmd]
 
 Homework:
 
 ### 004 Network Composition, Distance, and Balance
 
-Slides: [.html](https://raw.githack.com/lightsociologist/soc613spr2023/main/lectures/004_local/week4_local.html)[.qmd]
+Slides: [.html](https://raw.githack.com/lightsociologist/soc613spr2023/main/lectures/004_local/week4_local.html) | [.qmd]
 
-Workshop: [.html[.qmd]
+Workshop: [.html] | [.qmd]
 
 Homework:
 
 ### 005 Centrality and Power
 
-Slides: [.html][.qmd]
+Slides: [.html] | [.qmd]
 
-Workshop: [.html[.qmd]
+Workshop: [.html] | [.qmd]
 
 Homework:
 
 ### 006 Cohesion and Community Detection
 
-Slides: [.html][.qmd]
+Slides: [.html] | [.qmd]
 
-Workshop: [.html[.qmd]
+Workshop: [.html] | [.qmd]
 
 Homework:
 
 ### 007 Two-Mode Networks
 
-Slides: [.html][.qmd]
+Slides: [.html] | [.qmd]
 
-Workshop: [.html[.qmd]
+Workshop: [.html] | [.qmd]
 
 Homework:
 
 ### 008 Diffusion and Preliminary Statistics
 
-Slides: [.html][.qmd]
+Slides: [.html] | [.qmd]
 
-Workshop: [.html[.qmd]
+Workshop: [.html] | [.qmd]
 
 Homework:
 
 ### 009 Introduction to Statistical Models
 
-Slides: [.html][.qmd]
+Slides: [.html] | [.qmd]
 
-Workshop: [.html[.qmd]
+Workshop: [.html] | [.qmd]
 
 Homework:
 
 ### 010 Oddities, Advanced Models, and Next Steps
 
-Slides: [.html][.qmd]
+Slides: [.html] | [.qmd]
 
-Workshop: [.html[.qmd]
+Workshop: [.html] | [.qmd]
 
 Homework:
