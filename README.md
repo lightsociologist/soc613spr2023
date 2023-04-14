@@ -20,14 +20,56 @@ Homework:
 
 **004 Network Composition, Distance, and Balance**
 
+Slides: [.html][.qmd]
+
+Workshop: [.html[.qmd]
+
+Homework:
+
 **005 Centrality and Power**
+
+Slides: [.html][.qmd]
+
+Workshop: [.html[.qmd]
+
+Homework:
 
 **006 Cohesion and Community Detection**
 
+Slides: [.html][.qmd]
+
+Workshop: [.html[.qmd]
+
+Homework:
+
 **007 Two-Mode Networks**
+
+Slides: [.html][.qmd]
+
+Workshop: [.html[.qmd]
+
+Homework:
 
 **008 Diffusion and Preliminary Statistics**
 
+Slides: [.html][.qmd]
+
+Workshop: [.html[.qmd]
+
+Homework:
+
 **009 Introduction to Statistical Models**
 
+Slides: [.html][.qmd]
+
+Workshop: [.html[.qmd]
+
+Homework:
+
 **010 Oddities, Advanced Models, and Next Steps**
+
+Slides: [.html][.qmd]
+
+Workshop: [.html[.qmd]
+
+Homework:
