@@ -1,0 +1,151 @@
+---
+title: "HW3 Cheat Sheet"
+format: 
+  html:
+    code-fold: true
+    embed-resources: true
+execute:
+  warning: false
+editor: source
+---
+
+This is a cheat sheet for the third homework. It works through each step in R.
+
+First, you need the following packages.
+
+```{r, message=FALSE}
+library(igraph)
+library(readr)
+library(RColorBrewer)
+```
+
+## 1. Toy Graph
+
+First, we are going to construct the toy graph. We can make an edge list based on how the nodes are connected to one another.
+
+And make a vector of node colors that correspond to each of the nodes.
+
+```{r, message=FALSE}
+
+edges <- c(1,2, 1,3, 1,6, 2,3, 2,5, 3,4, 3,5, 6,2)
+
+
+colors <- c("yellow", "red", "green", "yellow", "red", "green")
+
+```
+
+Now we can use the graph function in igraph to read the graph into an igraph object and assign the color in the function.
+
+```{r, message=FALSE}
+#| label: toy_graph
+#| fig-cap: This is the HW03 Toy Graph
+
+t.g <- graph(edges, directed=T)
+
+plot(t.g, vertex.color=colors, edge.arrow.size=.5)
+```
+
+You could also assign colors as vertex attribute in the igraph object. Then you don't have to. assign colors inside the graph function.
+
+
+
+```{r, message=FALSE}
+#| label: toy_graph2
+#| fig-cap: This is also the HW03 Toy Graph
+
+V(t.g)$color <- colors
+
+plot(t.g, edge.arrow.size=.5)
+
+```
+
+## 2. Game of Thrones
+
+First we load the data from the Game of Thrones book and inspect.
+
+```{r, message=F}
+
+stormofswords <- read_csv("data/stormofswords.csv") 
+
+head(stormofswords)
+
+```
+
+We can see that this is a weighted edgelist in a data frame. So, we can use graph_from_data_frame to make an igraph object. If we return the graph name, we can see the graph summary. We can also see an initial plot.
+
+```{r, message=F}
+
+thr.g <- graph_from_data_frame(stormofswords)
+
+#Let's take a peek at the graph summary
+
+thr.g
+
+#Initial plot
+
+plot(thr.g)
+
+```
+
+The plot is a bit messy and it is hard to make much sense of it, so let's add some additional information.
+
+We can add the houses as attributes
+
+```{r, message=F}
+
+load("~/Documents/GitHub/sna_course/week_3_visualization/week3_visualization/data/got_att.rda") #This point to where attribute file is located
+
+#Inspect thing
+
+head(got_att)
+
+```
+
+We can see there are names, degree, and the house (0="Other", 1="Lannister", 2="Stark", 3="Tagaryen", 4="Baratheon")
+
+Let's store those in the vertices
+
+And plot with the setting vertex color by house and vertex size by degree, and edge width by weight
+
+```{r, message=F}
+V(thr.g)$degree <- got_att$degree
+
+V(thr.g)$house <- got_att$house
+
+plot(thr.g, vertex.color=V(thr.g)$house+1, vertex.size=V(thr.g)$degree/2, edge.arrow.size=.1, edge.width=E(thr.g)$Weight/10,
+     layout=layout_with_kk)
+
+```
+
+
+It might be nice to include a legend. The Moody and Light 2020 tutorial describes how to accomplish that.
+
+Start with the RColorBrewer Package and index the colors. Then connect the colors to the house attribute as a factor and plot. For this graph we can remove the names to see how the Houses relate.
+
+```{r, message=F}
+
+library(RColorBrewer)
+
+#Index the colors
+
+pal <- brewer.pal(5, "Accent")
+
+#Connect the colors to the house attribte as a factor
+
+vertex.col <- (pal[as.numeric(as.factor(vertex_attr(thr.g, "house")))])
+
+#plot...note I adjust the color by making more transparent (alpha=)
+
+plot(thr.g, vertex.color=adjustcolor(vertex.col, alpha=.75), vertex.label=NA, vertex.size=V(thr.g)$degree/2, edge.arrow.size=.1, 
+     edge.width=E(thr.g)$Weight/10, layout=layout_with_kk)
+
+#Add legend (see https://www.rdocumentation.org/packages/graphics/versions/3.6.2/topics/legend)
+
+legend("topleft", title="House", bty = "n", #set location, legend title, and box type
+       legend=c("Other","Lannister", "Stark", "Tagaryen", "Baratheon"), #legend words
+       fill=pal, border=NA) #fill of circles and we don't need a border
+
+```
+
+
+

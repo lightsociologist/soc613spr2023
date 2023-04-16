@@ -1,0 +1,351 @@
+---
+title: 'Select Examples from Moody and Light (2020) in R'
+author: "Ryan Light"
+date: "April 14, 2021"
+output:
+  html_document:
+  df_print: paged
+---
+
+##  Building Moody and Light (2020) Style Graphs
+
+Here we walk through a series of examples from the Moody and Light (2020) chapter on visualization. Most figures in that chapter were developed in Pajek and here we will work with similar data and figures to create similar graphs.
+
+First we need to load relevant packages. These will get us started.
+
+```{r, message=FALSE, echo=TRUE}
+#install.packages("igraph")
+#install.packages("RColorBrewer")
+library(igraph)
+library(RColorBrewer)
+```
+
+We will begin by showing examples similar to Figure 18.3: A series of vigures showing distance based layouts.
+
+We will read some high school data similar to their data using read.graph as the data were stored as a pajek file
+
+```{r, message=FALSE, echo=TRUE}
+
+sch4 <- read.graph("data/sch4.net", format="pajek")	
+
+```
+
+
+First we will also add some node attributes from a .txt file before plotting. We can use set_vertex_attr for to make that happen.
+
+```{r, echo=TRUE}
+#create table of node attributes...Note that Header is important here as there are column labels
+sch4_attr <- read.table("data/sch4_attr.txt", header=TRUE)
+
+#set attributes stores these attributes in the igraph object
+sch4 <- set_vertex_attr(sch4, "grade", index = V(sch4), sch4_attr$grade)
+sch4 <- set_vertex_attr(sch4, "race", index = V(sch4), sch4_attr$race) 
+
+#this makes a random variable for popularity
+popularity <- runif(291, min = 1, max = 10)       
+
+#this stores that random varialbe as an attribute
+V(sch4)$popularity <- popularity
+
+#found an error before by looking at the grades table
+table(V(sch4)$grade)
+
+#so let's delete that weird one using delete.vertices
+sch4 <- delete.vertices(sch4, V(sch4)$grade==0)
+
+#and plot
+plot(sch4)
+```
+
+We can see that this is not a great image. There's a hairball. While isolates are important for understanding the overall network - remember that they are certainly a part of this social world. We are mostly interested in the connections within this school and so will focus on those who have nominated at least one friend. Recall that degree is the number of nodes that an ego is connected to so is we delete nodes with degree=0 we will remove isolates. This will plot the largest connected component in this graph.
+
+Getting rid of the vertex labels by setting vertex.label=NA may also help. These labels for this graph are ID numbers and therefore not informative.
+
+```{r, echo=TRUE}
+
+#identify isolates
+
+isolates <- which(degree(sch4)==0)
+
+#delete isolates
+
+sch4.comp <- delete.vertices(sch4, isolates)
+
+#plot while also getting rid fo vertex labels.
+
+plot(sch4.comp, vertex.label=NA)
+
+```
+
+Better, but we can still make things clearer.
+
+Let's make several adjustments:
+
+1. Make the node size smaller using vertex.size=
+2. Reduce the edge width by a multiplier (1/2) using edge.width=
+3. Reduce the size of the arrows with edge.arrow.size=
+
+```{r, echo=TRUE}
+
+plot(sch4.comp, vertex.label=NA, vertex.size=4, edge.width=E(sch4.comp)$weight/2, edge.arrow.size = 0.1)
+
+```
+
+Now we are ready to check out some layouts like in figure 18.3.
+
+## Layout: Multidimensional Scaling
+Multidimenional scaling is a popular data reduction techinque in the social sciences (both networks and not). This is an "explicit dimenisonal reduction" technique that finds a small number of dimensions that capture the bulk of the variannce in a data matrix or array. 
+
+```{r, echo=TRUE}
+multidim <- layout_with_mds(sch4.comp)
+plot(sch4.comp, vertex.label=NA, vertex.size=4, edge.width=E(sch4.comp)$weight/2, edge.arrow.size = 0.1, layout=multidim)
+```
+
+## Layout: Kamada-Kawai
+
+Kamada-Kawai is a force-directed layout or a "spring-embedding routine" that sees graph space as a "field of forcfes" where nodes attract to neighbors and repel from those with whom they are disconnected. Kamada-Kawai is useful on smaller graphs as it avoids drawing nodes in the exact same spot.
+
+```{r, echo=TRUE}
+kk <- layout_with_kk(sch4.comp)
+plot(sch4.comp, vertex.label=NA, vertex.size=4, edge.width=E(sch4.comp)$weight/2, edge.arrow.size = 0.1, layout=kk)
+```
+
+## Layout: Fruchterman-Reingold
+
+Fruchterman-Reingold is a force-directed layout that does not avoid overlap and therefore is good when hoping to leverage density or when graphs are pretty large.
+
+```{r, echo=TRUE}
+fr <- layout_with_fr(sch4.comp)
+plot(sch4.comp, vertex.label=NA, vertex.size=4, edge.width=E(sch4.comp)$weight/2, edge.arrow.size = 0.1, layout=fr)
+```
+
+## Layout: DrL
+
+DrL is a force-directed layout that works efficiently on very large graphs (n>1000)
+
+```{r, echo=TRUE}
+drl <- layout_with_drl(sch4.comp)
+plot(sch4.comp, vertex.label=NA, vertex.size=4, edge.width=E(sch4.comp)$weight/2, edge.arrow.size = 0.1, layout=drl)
+```
+
+We can see that this is quite aggressive and really pushing the "strangers" apart. In this case, we will stick with the default fruchterman-reingold.
+
+## Intentional Embellishments of Graphs (see Figure 18.5)
+
+We saw the default school layout several times and have already adjusted the edge weight. We can also color the vertices by an attribute. Moody and Light (2020) use race. Here, grade is more salient so we use that by setting vertex.color according to the attribute grade. We add 1 to avoid any indexing problems. We will show an additional way to set the node colors below.  
+
+```{r, echo=TRUE}
+
+plot(sch4.comp, vertex.label=NA, vertex.color=V(sch4.comp)$grade+1, edge.width=E(sch4.comp)$weight/2, vertex.size=4, edge.arrow.size = 0.1)
+```
+
+
+We can also adjust the size of the nodes based on an attribute using vertex.size= . Here, we use the random popularity variable constructed above.
+
+```{r, echo=TRUE}
+
+plot(sch4.comp, vertex.label=NA, vertex.color=V(sch4.comp)$grade+1, edge.width=E(sch4.comp)$weight/2,  
+     vertex.size=V(sch4.comp)$popularity*.75, edge.arrow.size = 0.1)
+```
+
+We may also want to emphasize within group connections by "rewarding" within group ties. We can do this by imposing a layout rule that weighs within group ties more heavily than out-group ties.
+
+We also introduce a few other ideas here.
+
+1. We use the package brewer.pal function from RColorBrewer to prettify the graph by connecting to grade.
+2. We also use the alpha= in the adjustcolor function to adjust the opacity of nodes.
+3. We also add a legend.
+
+```{r, echo=TRUE}
+
+#create a copy graph
+G_Grouped = sch4.comp
+
+#set edge weights to 1
+E(G_Grouped)$weight = 1
+
+# Add edges with high weight between all nodes in the same group
+for(i in unique(V(sch4.comp)$grade)) {
+  GroupV = which(V(sch4.comp)$grade == i)
+  G_Grouped = add_edges(G_Grouped, combn(GroupV, 2), attr=list(weight=1.5))
+} 
+
+## Now create a layout based on G_Grouped
+set.seed(567)
+LO = layout_with_fr(G_Grouped)
+
+#create a pallete
+pal <- brewer.pal(6, "Accent")
+
+#Connect the pallete to the grades by making the grade attribute a factor
+vertex.col <- (pal[as.numeric(as.factor(vertex_attr(sch4.comp, "grade")))])
+
+#plot the graph and note that we set the opacity of the nodes to .5 using alpha=.5.
+plot(sch4.comp, vertex.label=NA, vertex.color=adjustcolor(vertex.col, alpha=.5), edge.width=E(sch4.comp)$weight/2,  
+     vertex.size=V(sch4.comp)$popularity*.75, edge.arrow.size = 0.1, layout=LO)
+
+#add a legend
+legend("topleft", title="Grade", bty = "n",
+       legend=levels(as.factor(V(sch4.comp)$grade)),
+       fill=pal, border=NA)
+```
+
+Note that this is a particularly pronounced example of the heuristic side of network visualization and you will likely want to avoid running any statistics say based on euclidean distance on this network visualization.
+
+## Big Data: Contour Sociograms
+
+There are several different ways to develop meaningful images of very large networks. One way is to leverage the fact that some forced directed algorithms stack nodes on top of one another. This translates into dense regions of connected nodes and the spaces in between them. Another way is to reduce edges to the major "thoroughfares" and keep the edges connected to them to locate the "backbone" of the graph.
+
+The first strategy requires the ggplot2 package and the second requires the disparityfilter package, so we should load those up.
+
+```{r, echo=TRUE}
+#install.packages("ggplot2")
+#install.packages("disparityfilter")
+library(ggplot2)
+library(disparityfilter)
+```
+
+So, I'm going to use a similar network of overlapping papers to Moody and Light (2020) Figure 18.6. We are going to try to locate dense regions in this graph.
+
+```{r, echo=T}
+
+#This is a network of overlapping papers that I read into a table as an edgelist
+#due to some funky in read.graph(x, format="pajek").
+
+pap.df <- read.table("data/papsim_edgelist.txt")
+
+#make igraph object
+
+pap.g <- graph_from_data_frame(pap.df)
+
+pap.g
+
+pap_fg <- layout.fruchterman.reingold(pap.g)
+
+
+```
+
+![A network](fg_net.png)
+
+We can see that this is a dense graph (e.g. a "hairball") and it is hard to make much out of it. We can leverage how the fruchterman reingold algorithm stacks strongly connected nodes as indication of densely connected regions of the graph. The layout algoritm consists of coordinates for the layout and so we save those and then use the stat_density_2d function of ggplot to place a kind of 2d skin over the network.
+
+```{r, echo=T}
+
+#png("fg_net.png", 600, 600)
+
+#plot.igraph(pap.g, layout=pap_fg, vertex.label=NA, vertex.size=2, edge.arrow.size = 0.1, edge.color=NA)
+
+#title("FG Layout Papers",cex.main=1,col.main="blue")
+
+#dev.off()
+
+
+#We can pull out the coordinates now from the layout.
+
+fg_coords <- as.data.frame(pap_fg)
+
+
+#Now we can plot the density
+fg_contour <- ggplot(fg_coords, aes(x=V1, y=V2)) +
+  stat_density_2d(aes(fill=..level..), geom="polygon")
+
+fg_contour
+
+
+```
+
+We can see two big regions in this graph and could dig deeper into those regions to see what is going on. We can also see how this works given an alogrithm that more aggressively tries to model structure in dense graphs, like the DrL layout.
+
+```{r, echo=T}
+
+#Now we can test against alternative drl layout
+pap_drl <- layout_with_drl(pap.g, dim=2)
+
+#png("drl_net.png", 600, 600)
+
+#plot.igraph(pap.g, layout=pap_drl, vertex.label=NA, vertex.size=2, edge.arrow.size = 0.1, edge.color=NA)
+
+#title("Drl Layout Papers",cex.main=1,col.main="blue")
+
+#dev.off()
+
+```
+
+![A network](drl_net.png)
+
+We can see somewhat of a structure here and can imagine perhaps locating communities and visualizing that way. But, let's see how the contour sociogram performs.
+
+```{r, echo=T}
+
+drl_coords <- as.data.frame(pap_drl)
+
+drl_contour <- ggplot(drl_coords, aes(x=V1, y=V2)) +
+  stat_density_2d(aes(fill=..level..), geom="polygon") +
+  scale_x_continuous(expand = c(0, 0)) +
+  scale_y_continuous(expand = c(0, 0)) +
+  theme(
+    legend.position='none'
+  )
+
+drl_contour
+
+```
+
+Not sure what to make of this, but we could dig deeper to see what is going on. These two graphs provide a good example of the heuristic side of visualization. Different choices, lead to different figures. We have to be aware of this characteristics and make sure to balance "realism" with our research questions.
+
+## Big Data: Skeleton Projections
+
+First, threshhold. Using data on coauthorship on COVID-19 papers (see adams, Light, and Theis 2020), we can use threshold data to remove less connected nodes. We can imnagine that being connected to an author by one coauthorship is quite different than being connected by more than one coauthorship. So, if we want to see the core of a social group we will try to narrow in on actors who are more active or more strongly connected. Here, we retain edges greater than 1 and plot the largest connected component or the set of nodes where every node has a path to every other node.
+
+```{r, echo=T}
+
+load("~/Documents/GitHub/sna_course/week_3_visualization/week3_visualization/data/coauthorship_network.Rda")
+
+ag
+
+ag_red <- delete.edges(ag, which(E(ag)$weight<2))
+
+ag_red
+
+Isolated = which(degree(ag_red)==0)
+
+ag_red2 = delete.vertices(ag_red, Isolated)
+
+aclust <- clusters(ag_red2)
+  csize <- table(table(aclust$membership))
+
+# Grabbing just the largest connected component
+  alcc <- induced.subgraph(ag_red2, V(ag_red2)[which(aclust$membership == which.max(aclust$csize))])
+  alcc <- simplify(alcc, remove.multiple=F) # removing loops
+  
+  plot(alcc, vertex.size=4, vertex.label=NA, edge.arrow.size=.01, layout=layout_with_kk)
+```
+
+We can also use network reduction algorithms to locate the "backbone" of a graph. One of these is called "disparity filter" and it uses a k-core decomposition routine to locate a densely connnected portion of the graph. Here. we use the disparity_filter function from skynet.
+
+```{r, echo=T}
+
+library(skynet)
+
+aclust <- clusters(ag)
+  csize <- table(table(aclust$membership))
+
+# Grabbing just the largest connected component
+  alcc <- induced.subgraph(ag, V(ag)[which(aclust$membership == which.max(aclust$csize))])
+  alcc <- simplify(alcc, remove.multiple=F) # removing loops
+
+bg <- disparity_filter(alcc, alpha=.2)
+
+bclust <- components(bg)
+
+bglcc <- induced.subgraph(bg, V(bg)[which(bclust$membership == which.max(bclust$csize))])
+bglcc <- simplify(bglcc, remove.multiple=F) # removing loops
+
+plot(bglcc,vertex.size=4, vertex.label=NA, edge.arrow.size=.01, layout=layout_with_kk)
+  
+```
+
+We can come up with clever ways of displaying the backbone within the broader network and as its own slice.
+
+![backbone](Fig3_panel_nets_ill.jpg)
+
