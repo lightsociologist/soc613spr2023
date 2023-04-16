@@ -8,9 +8,7 @@ The class is taught by [Ryan Light](https://ryanlight.netlify.app/).
 
 ### 001 Introductions
 
-Slides: [.html] | [.qmd]
-
-Workshop: [.html] | [.qmd]
+Lecture: [.html] | [.qmd]
 
 Homework: [.pdf](https://github.com/lightsociologist/soc613spr2023/tree/main/homework/001hw/w1_homework_set.pdf) | The bonus challanges you to build a family network tree in R. Here is an example if interested: [.html](https://raw.githack.com/lightsociologist/soc613spr2023/tree/main/homework/001hw/example/family_tree.html)
 
