@@ -10,7 +10,7 @@ The class is taught by [Ryan Light](https://ryanlight.netlify.app/).
 
 Lecture: [.pdf](https://github.com/lightsociologist/soc613spr2023/tree/main/lectures/001_intro/introduction_to_networks_2023.pdf)
 
-Homework: [.pdf](https://github.com/lightsociologist/soc613spr2023/tree/main/homework/001hw/w1_homework_set.pdf) | The bonus challanges you to build a family network tree in R. Here is an example if interested: [.html](https://raw.githack.com/lightsociologist/soc613spr2023/tree/main/homework/001hw/example/family_tree.html)
+Homework: [.pdf](https://github.com/lightsociologist/soc613spr2023/tree/main/homework/001hw/w1_homework_set.pdf) | The bonus challanges you to build a family network tree in R. Here is an example if interested: [.html](https://raw.githack.com/lightsociologist/soc613spr2023/main/homework/001hw/example/family_tree.html)
 
 
 ### 002 Foundations and Theoretical Perspectives
@@ -18,8 +18,6 @@ Homework: [.pdf](https://github.com/lightsociologist/soc613spr2023/tree/main/hom
 Homework: [.pdf](https://github.com/lightsociologist/soc613spr2023/tree/main/homework/002hw/w2_homework_set.pdf) 
 
 ### 003 Collecting and Visualizing Network Data
-
-Slides: [.html] | [.qmd]
 
 Workshop: [.html](https://raw.githack.com/lightsociologist/soc613spr2023/main/lectures/003_visualization/week3_visualization.html) | [.qmd]
 
