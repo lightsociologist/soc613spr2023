@@ -15,10 +15,6 @@ Homework: [.pdf](https://github.com/lightsociologist/soc613spr2023/tree/main/hom
 
 ### 002 Foundations and Theoretical Perspectives
 
-Slides: [.html] | [.qmd]
-
-Workshop: [.html] | [.qmd]
-
 Homework: [.pdf](https://github.com/lightsociologist/soc613spr2023/tree/main/homework/002hw/w2_homework_set.pdf) 
 
 ### 003 Collecting and Visualizing Network Data
