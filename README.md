@@ -50,23 +50,23 @@ Homework: [.pdf](https://github.com/lightsociologist/soc613spr2023/tree/main/hom
 
 ### 007 Two-Mode Networks
 
-Slides: [.html](https://raw.githack.com/lightsociologist/soc613spr2023/main/lectures/007_affiliation/week8_slides_2021.html) 
+Slides: [.html](https://raw.githack.com/lightsociologist/soc613spr2023/main/lectures/007_affiliation/w8_slides_2021.html) 
 
-Workshop: [.html](https://raw.githack.com/lightsociologist/soc613spr2023/main/lectures/007_affiliation/week7_affiliation_workshop.html) 
+Workshop: [.html](https://raw.githack.com/lightsociologist/soc613spr2023/main/lectures/007_affiliation/w7_affiliation_workshop.html) 
 
 Homework: TBD
 
 ### 008 Diffusion and Preliminary Statistics
 
-Workshop: [.html](https://raw.githack.com/lightsociologist/soc613spr2023/main/lectures/008_prelim_stat/week8_intro_to_network_stats.html) 
+Workshop: [.html](https://raw.githack.com/lightsociologist/soc613spr2023/main/lectures/008_prelim_stat/w8_intro_to_network_stats.html) 
 
 Homework: [.pdf](https://github.com/lightsociologist/soc613spr2023/tree/main/homework/008hw/w8_intro_stats.pdf)
 
 ### 009 Introduction to Statistical Models
 
-Slides: [.html](https://raw.githack.com/lightsociologist/soc613spr2023/main/lectures/009_ergms/week9_slides.html) 
+Slides: [.html](https://raw.githack.com/lightsociologist/soc613spr2023/main/lectures/009_ergms/w9_slides.html) 
 
-Workshop: [.html](https://raw.githack.com/lightsociologist/soc613spr2023/main/lectures/009_ergms/week9_ergm_wksp.html) 
+Workshop: [.html](https://raw.githack.com/lightsociologist/soc613spr2023/main/lectures/009_ergms/w9_ergm_wksp.html) 
 
 Homework: [.pdf](https://github.com/lightsociologist/soc613spr2023/tree/main/homework/009hw/w9_ergm.pdf)
 
