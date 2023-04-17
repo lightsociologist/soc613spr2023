@@ -1,7 +1,5 @@
 ---
 title: 'Week 5: Introduction to Centrality'
-author: "Ryan Light with significant collaboration with jimi adams"
-date: "April 28, 2021"
 output:
   html_document:
     df_print: paged

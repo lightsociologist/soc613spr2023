@@ -1,7 +1,5 @@
 ---
 title: 'Week 5: Centrality'
-author: "Ryan Light"
-date: "May 1, 2018"
 smaller: TRUE
 output: 
   ioslides_presentation:
@@ -18,11 +16,7 @@ Background:  At the individual level, one dimension of position in the network c
 
 Conceptually, centrality is fairly straight forward: we want to identify which nodes are in the ‘center’ of the network.  In practice, identifying exactly what we mean by ‘center’ is somewhat complicated.
 
-Node Leve Measures:
-Degree
-Closeness
-Betweenness
-Power
+Node Leve Measures: Degree, Closeness, Betweenness, Power
 
 Graph Level measures: Centralization
 
@@ -30,31 +24,37 @@ Graph Level measures: Centralization
 
 Let's get a quick look at our exemplar data sets. Second: the Florentine Marriage Network. Here, the nodes are families and the edges are marital ties. Florence around 1430 was experiencing rapid economic and political transformation and we see two points of struggle between the Medicis and the Strozzis.
 
-## Digging into Groups: Florentine Marriage Network
+
+
+## Digging into Centrality: Florentine Marriage Network
 
 ```{r message=FALSE}
-flomarriage <- as.undirected(read.graph("flomarriage.net", format="pajek"))
+library(igraph)
 
-wealth <- as.matrix(read.table("flowealth.clu", skip=1))	
+flomarriage <- as.undirected(read.graph("data/flomarriage.net", format="pajek"))
+
+wealth <- as.matrix(read.table("data/flowealth.clu", skip=1))	
 V(flomarriage)$wealth <- as.vector(wealth)					
 
+party <- as.matrix(read.table("data/floparty.clu"))	
+V(flomarriage)$party <- as.vector(party)				
 
 flomarriage <- delete_vertices(simplify(flomarriage), degree(flomarriage)==0)
 
-plot.igraph(flomarriage)
+plot.igraph(flomarriage, vertex.color=as.factor(V(flomarriage)$party))
 ```
 
 ## What is an important actor?
 
 Intuitively, we want a method that allows us to distinguish “important” actors.  Consider the following graphs:
 
-![](locate_important_actors.jpg)
+![](images/locate_important_actors.jpg)
 
 ## Important actors are most connected (degree)
 
 The most intuitive notion of centrality focuses on degree: The actor with the most ties is the most important:
 
-![](degree_graph.jpg)
+![](images/degree_graph.jpg)
 
 ## Degree in R
 
@@ -63,21 +63,17 @@ So our old friend degree is back!
 degree centrality <- degree(g)
 
 
-```{r  message=FALSE, echo=TRUE}
-library (igraph)
-valente <- read.graph("valente.net", format="pajek")
-gender <- as.matrix(read.table("valente.clu", skip=1))	
-V(valente)$gender <- as.vector(gender)					
+```{r  message=FALSE, echo=FALSE}
 
-degree_centrality <- degree(valente)
+degree_centrality <- degree(flomarriage)
 
 ```
 
 ## Degree in R
 
 ```{r }
-plot.igraph(valente, vertex.size=degree_centrality, vertex.color=V(valente)$gender+1,
-            edge.arrow.size=.5)
+plot.igraph(flomarriage, vertex.size=degree_centrality*5,
+            edge.arrow.size=.5, vertex.color=as.factor(V(flomarriage)$party))
 
 ```
 
@@ -87,26 +83,35 @@ plot.igraph(valente, vertex.size=degree_centrality, vertex.color=V(valente)$gend
 
 Degree centrality, however, can be deceiving, because it is a purely local measure.
 
-![](degree_local_measure.jpg)
-
-## Degree as a graph property
-
-If we want to measure the degree to which the graph as a whole is centralized, we look at the dispersion of  centrality:
-
-Simple: variance of individual centrality scores.
-
-![](variance_formula.jpg)
+![](images/degree_local_measure.jpg)
 
 
 ## Degree as a graph property
 
-Or, we can use Freeman's general formula for centralization:
+To understand degree as a graph property, we can use variance or we can use Freeman's general formula for centralization:
 
-![](centralization_formula.jpg)
+![](images/centralization_formula.jpg)
 
-## Variance and Centralization in R
 
-```{r  message=FALSE, echo=TRUE}
+```{r  message=FALSE, echo=FALSE}
+valente <- read.graph("data/valente.net", format="pajek")
+
+vdegree_centrality <- degree(valente)
+
+vdc.df <- as.data.frame(vdegree_centrality)
+
+vdc.df$mean_center <- vdc.df$vdegree_centrality-(mean(vdc.df$vdegree_centrality))
+
+vdc.df$numerator <- vdc.df$mean_center^2
+
+vvariance <- (sum(vdc.df$numerator))/vcount(valente)
+
+vcd <- centralization.degree(valente)
+
+
+```
+
+```{r  message=FALSE, echo=FALSE}
 
 dc.df <- as.data.frame(degree_centrality)
 
@@ -114,19 +119,20 @@ dc.df$mean_center <- dc.df$degree_centrality-(mean(dc.df$degree_centrality))
 
 dc.df$numerator <- dc.df$mean_center^2
 
-variance <- (sum(dc.df$numerator))/vcount(valente)
+variance <- (sum(dc.df$numerator))/vcount(flomarriage)
 
-print(variance)
+#print(variance)
+#print(vvariance)
 
-cd <- centralization.degree(valente)
+cd <- centralization.degree(flomarriage)
 
-print(cd$centralization)
-
+#print(cd$centralization)
+#print(vcd$centralization)
 ```
 
 ## Degree Centralization and Variance
 
-![](centralization_and_variance.jpg)
+![](images/centralization_and_variance.jpg)
 
 ## Closeness Centrality
 
@@ -134,7 +140,7 @@ A second measure of centrality is closeness centrality.  An actor is considered 
 
 Closeness is based on the inverse of the distance of each actor to every other actor in the network.
 
-![](closeness_centrality_formulas.jpg)
+![](images/closeness_centrality_formulas.jpg)
 
 ## Closeness Centrality in R
 
@@ -144,11 +150,11 @@ close_centrality <- closeness(g)
 centralization.closeness(g)
 
 
-```{r  message=FALSE, echo=TRUE}
+```{r  message=FALSE, echo=FALSE}
 
-close_centrality <- closeness(valente, normalized=TRUE, mode="ALL")
+close_centrality <- closeness(flomarriage, normalized=TRUE, mode="ALL")
 
-cc <- centralization.closeness(valente)
+cc <- centralization.closeness(flomarriage)
 
 cc$centralization
 
@@ -158,8 +164,8 @@ cc$centralization
 ```{r}
 
 
-plot.igraph(valente, vertex.size=close_centrality*50, vertex.color=V(valente)$gender+1,
-            edge.arrow.size=.5)
+plot.igraph(flomarriage, vertex.size=close_centrality*50, 
+            edge.arrow.size=.5,vertex.color=as.factor(V(flomarriage)$party))
 
 ```
 
@@ -167,16 +173,16 @@ plot.igraph(valente, vertex.size=close_centrality*50, vertex.color=V(valente)$ge
 
 Model based on communication flow:  A person who lies on communication paths can control communication flow, and is thus important.  Betweenness centrality counts the number of shortest paths between i and k that actor j resides on.
 
-![](betweeness_graphs.jpg)
+![](images/betweeness_graphs.jpg)
 
 ## Betweenness Centrality
 
-![](betweenness_formula.jpg)
+![](images/betweenness_formula.jpg)
 
 
 ## Betweenness Centrality
 
-![](betweenness_examples.jpg)
+![](images/betweenness_examples.jpg)
 
 
 ## Betweenness Centrality in R
@@ -185,9 +191,9 @@ between_centrality <- betweenness(g)
 
 centralization.betweenness(g)
 
-```{r message=FALSE, echo=TRUE}
+```{r message=FALSE, echo=FALSE}
 
-between_centrality <- betweenness(valente)
+between_centrality <- betweenness(flomarriage)
 
 ```
 
@@ -195,21 +201,21 @@ between_centrality <- betweenness(valente)
 
 ```{r}
 
-plot.igraph(valente, vertex.size=between_centrality/10, vertex.color=V(valente)$gender+1,
-            edge.arrow.size=.5)
+plot.igraph(flomarriage, vertex.size=between_centrality/2, 
+            edge.arrow.size=.5, vertex.color=as.factor(V(flomarriage)$party))
 
 ```
 
 
 ## Comparing Degree, Closeness, and Betweenness
 
-![](comparisons.jpg)
+![](images/comparisons.jpg)
 
 ## Power and Influence Centrality
 
 Bonacich Power Centrality:  Actor’s centrality (prestige) is equal to a function of the prestige of those they are connected to.  Thus, actors who are tied to very central actors should have higher prestige/ centrality than those who are not. 
 
-![](power_formula.jpg)
+![](images/power_formula.jpg)
 - a is a scaling vector, which is set to normalize the score.  
 - b reflects the extent to which you weight the - centrality of people ego is tied to.
 -R is the adjacency matrix (can be valued)
@@ -241,13 +247,13 @@ Node-level eigenvector centrality: eigen_centrality(g)
 
 Graph-level eigenvector centrality: centr_eigen(g)
 
-```{r message=FALSE, echo=TRUE}
+```{r message=FALSE, echo=FALSE}
 
-bonacich_centrality <- power_centrality(valente)
+bonacich_centrality <- power_centrality(flomarriage)
 
-eig_centrality <- eigen_centrality(valente)
+eig_centrality <- eigen_centrality(flomarriage)
 
-ce <- centr_eigen(valente)
+ce <- centr_eigen(flomarriage)
 
 print(ce$centralization)
 
@@ -255,10 +261,10 @@ print(ce$centralization)
 
 ## Power Centrality in R
 
-```{r message=FALSE, echo=TRUE}
+```{r message=FALSE, echo=FALSE}
 
-plot.igraph(valente, vertex.size=eig_centrality$vector*10, vertex.color=V(valente)$gender+1,
-            edge.arrow.size=.5)
+plot.igraph(flomarriage, vertex.size=eig_centrality$vector*10,
+            edge.arrow.size=.5, vertex.color=as.factor(V(flomarriage)$party))
 ```
 
 ## Working with Centrality
@@ -275,13 +281,43 @@ The off-the-shelf measures do not always match the social process of interest, s
 
 ## Working with Centrality
 
-![](borgatti_centrality.jpg)
+![](images/borgatti_centrality.jpg)
+
+## Betweenness by Constraint
+
+```{r}
+
+library(ggplot2)
+library(ggrepel)
+
+constraint <- constraint(flomarriage) 
+
+prty <- as.numeric(as.factor(V(flomarriage)$party))
+
+degree <- degree(flomarriage)
+
+becon <- data.frame(between=between_centrality, cons=constraint, name=V(flomarriage)$name, party=prty, degree=degree)
 
 
 
+ggplot(becon, aes(x=between, y=cons, label=name)) + 
+  geom_point() + geom_label_repel(aes(label=name), fill = factor(becon$party+4))
+  
 
 
+```
 
+## Degree by Constraint
+
+```{r}
+
+
+ggplot(becon, aes(x=degree, y=cons, label=name)) + 
+  geom_point() + geom_label_repel(aes(label=name), fill = factor(becon$party+4))
+  
+
+
+```
 
 
 
