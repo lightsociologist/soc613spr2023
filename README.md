@@ -21,14 +21,14 @@ Homework: [.pdf](https://github.com/lightsociologist/soc613spr2023/tree/main/hom
 
 Workshop: [.html](https://raw.githack.com/lightsociologist/soc613spr2023/main/lectures/003_visualization/week3_visualization.html) | [.rmd](https://github.com/lightsociologist/soc613spr2023/tree/main/lectures/003_visualization/week3_visualization.rmd)
 
-Homework:[.pdf](https://github.com/lightsociologist/soc613spr2023/tree/main/homework/003hw/w3_intro_data_viz.pdf) | [cheatsheet.html](https://raw.githack.com/lightsociologist/soc613spr2023/main/homework/003hw/hw3_cheat.html) | [cheatsheet.qmd](https://github.com/lightsociologist/soc613spr2023/tree/main/homework/003hw/hw_cheat.qmd)
+Homework: [.pdf](https://github.com/lightsociologist/soc613spr2023/tree/main/homework/003hw/w3_intro_data_viz.pdf) | [cheatsheet.html](https://raw.githack.com/lightsociologist/soc613spr2023/main/homework/003hw/hw3_cheat.html) | [cheatsheet.qmd](https://github.com/lightsociologist/soc613spr2023/tree/main/homework/003hw/hw_cheat.qmd)
 
 
 ### 004 Network Composition, Distance, and Balance
 
 Workshop: [.html](https://raw.githack.com/lightsociologist/soc613spr2023/main/lectures/004_local/week4_local.html) | [.rmd](https://github.com/lightsociologist/soc613spr2023/tree/main/lectures/004_local/week4_local.Rmd)
 
-Homework: 
+Homework: [.pdf](https://github.com/lightsociologist/soc613spr2023/tree/main/homework/004hw/w4_local_nets.pdf)
 
 ### 005 Centrality and Power
 
@@ -36,7 +36,7 @@ Slides: [.html] | [.qmd]
 
 Workshop: [.html] | [.qmd]
 
-Homework:
+Homework: [.pdf](https://github.com/lightsociologist/soc613spr2023/tree/main/homework/005hw/w5_centrality.pdf)
 
 ### 006 Cohesion and Community Detection
 
@@ -44,7 +44,7 @@ Slides: [.html] | [.qmd]
 
 Workshop: [.html] | [.qmd]
 
-Homework:
+Homework: [.pdf](https://github.com/lightsociologist/soc613spr2023/tree/main/homework/006hw/w6_community.pdf)
 
 ### 007 Two-Mode Networks
 
@@ -52,7 +52,7 @@ Slides: [.html] | [.qmd]
 
 Workshop: [.html] | [.qmd]
 
-Homework:
+Homework: TBD
 
 ### 008 Diffusion and Preliminary Statistics
 
@@ -60,7 +60,7 @@ Slides: [.html] | [.qmd]
 
 Workshop: [.html] | [.qmd]
 
-Homework:
+Homework: [.pdf](https://github.com/lightsociologist/soc613spr2023/tree/main/homework/008hw/w8_intro_stats.pdf)
 
 ### 009 Introduction to Statistical Models
 
@@ -68,7 +68,7 @@ Slides: [.html] | [.qmd]
 
 Workshop: [.html] | [.qmd]
 
-Homework:
+Homework: [.pdf](https://github.com/lightsociologist/soc613spr2023/tree/main/homework/009hw/w9_ergm.pdf)
 
 ### 010 Oddities, Advanced Models, and Next Steps
 
@@ -76,4 +76,4 @@ Slides: [.html] | [.qmd]
 
 Workshop: [.html] | [.qmd]
 
-Homework:
+Homework: TBD
