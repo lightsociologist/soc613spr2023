@@ -1,0 +1,426 @@
+---
+title: 'Week 6: Cohesion and Community'
+smaller: TRUE
+output: 
+  ioslides_presentation:
+    css: white.css
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+## What is a social group?
+
+One of the fundamental goals of social network analysis is to locate groups of nodes that seem to be "grouped" together. This grouping pattern between nodes can be the result of several factors. For example, there could be exogenous groupings based on affiliation (e.g. work units or afterschool activities) or they could be based on connectivity. Here, we focus on connectivity.
+
+## What is a social group?
+
+Do groups consist of all the connections we have with others?
+
+![](images/freeman_whole.jpg)
+
+## What is a social group?
+
+Or do we eliminate weak ties (!ties < 1)
+
+![](images/freeman_2.jpg)
+
+## What is a social group?
+
+
+![](images/freeman_3.jpg)
+
+
+Or do we eliminate weak ties (!ties < 2)
+
+## What is a social group?
+
+Or do we retain only strong ties (ties ≥ 4)?
+
+![](images/freeman_4.jpg)
+
+## What is a social group?
+
+Or do we retain only strong and *transitive* ties (ties ≥ 5)?
+
+![](images/freeman_5.jpg)
+
+## Digging into Groups: Zachary's Karate Club Dataset
+
+Let's get a quick look at our exemplar data sets. First, Zachary's Karate Club: Nodes are club members and edges are interactions. The network occurs just prior to a split between the Teacher (node 1) and the club president (node 34). 
+
+## Digging into Groups: Zachary's Karate Club Dataset
+
+```{r message=FALSE}
+
+library(igraph)
+load("data/karate.rda")
+
+plot.igraph(karate)
+
+```
+
+## Defining Groups: Components, Cliques and Cores
+
+Several approaches to groups: components, bicomponents, cliques, and cores.
+
+
+## Defining Groups: Components and Bicomponents
+- Component: Maximally connected subgraph
+    - Strong: Directed/ Weak: Undirected
+
+- Bicomponent: Maximally connected subgraph with at least two paths between each node.
+
+components(g) & biconnected.components(g)
+
+
+```{r, echo=TRUE}
+
+V(karate)$label <- c(1:34)
+
+comps <- components(karate)
+
+print(comps$csize)
+
+```
+
+## Defining Groups: Bicomponents
+
+```{r echo=TRUE}
+
+V(karate)$name <- V(karate)$label
+
+biconnected <- biconnected.components(karate)
+
+b1 <- biconnected$components[[1]]
+
+g2 <- induced.subgraph(graph=karate,vids=b1)
+
+```
+
+## Defining Groups: Bicomponents
+
+```{r}
+
+plot.igraph(g2)
+
+```
+
+## Defining Groups: Cores
+
+- k-Cores: A subgraph where each node is connected to at least k nodes. 
+
+coreness(g)
+
+``` {r, echo=TRUE, ,results='hide'}
+kcore <- coreness(karate)    # Find the cores
+V(karate)$core <- kcore      # Add the cores as a vertex attribute
+
+library(RColorBrewer)
+coul = brewer.pal(4, "Set1") 
+ 
+# Create a vector of color
+my_color=coul[as.numeric(as.factor(V(karate)$core))]
+
+plot.igraph(karate, vertex.color=my_color)
+legend("bottomleft", legend=levels(as.factor(V(karate)$core)) , 
+col = coul , bty = "n", pch=20 , pt.cex = 3, cex = 1.5, 
+horiz = FALSE, inset = c(0.1, 0.1))
+ 
+```
+
+
+## Defining Groups: Cores
+``` {r, echo=TRUE, ,results='hide'}
+
+plot.igraph(karate, vertex.color=my_color)
+legend("bottomleft", legend=levels(as.factor(V(karate)$core)) , 
+col = coul , bty = "n", pch=20 , pt.cex = 3, cex = 1.5, 
+horiz = FALSE, inset = c(0.1, 0.1))
+ 
+```
+
+## Defining Groups: Cliques
+- Clique: A maximally connected subgraph of at least three nodes
+
+cliques(g)| max_cliques(g) | largest_cliques(g)
+
+```{r echo=TRUE, results="hide"}
+
+cliques <- largest_cliques(karate)
+
+c1 <- cliques[[1]]
+
+clique2 <- induced.subgraph(graph=karate,vids=c1)
+
+plot(clique2)
+
+````
+
+
+## Defining Groups: Cliques
+
+
+```{r}
+
+cliques <- largest_cliques(karate)
+
+c1 <- cliques[[1]]
+
+clique2 <- induced.subgraph(graph=karate,vids=c1)
+
+plot(clique2)
+
+````
+
+
+## Multiple Connectivity
+
+k-components: subgraph connectivity is defined by: 
+    - (a) the number of nodes that must be removed from the graph to disconnect the components.
+    - (b) the number of ties that must be removed from the graph to disconnect the components.
+
+Mathematically, a & b are equivalent
+
+Cut-points/articulation points are nodes whose removal results in the graph splitting apart.
+
+articulation.points(g)
+
+## Multiple Connectivity
+
+
+```{r echo=TRUE}
+
+art_points <- articulation.points(karate)
+
+rem <- delete.vertices(karate, art_points)
+
+plot(rem)
+
+art.points2 <- articulation.points(rem)
+
+rem2 <- delete.vertices(rem, art.points2)
+
+plot(rem2)
+
+```
+
+## Multiple Connectivity
+
+```{r}
+
+plot(rem2)
+
+```
+
+## Multiple Connectivity
+
+![](images/multiple_connectivity.jpg)
+
+## Cohesion
+
+"Cohesive blocking is a method of determining hierarchical subsets of graph vertices based on their structural cohesion (or vertex connectivity). For a given graph G, a subset of its vertices S is said to be maximally k-cohesive if there is no superset of S with vertex connectivity greater than or equal to k. Cohesive blocking is a process through which, given a k-cohesive set of vertices, maximally l-cohesive subsets are recursively identified with l>k. Thus a hiearchy of vertex subsets is found, whith the entire graph G at its root." - Igraph
+
+result <- cohesive.blocks(g)
+plotHierarchy(result)
+
+## Cohesion
+
+```{r, echo=TRUE}
+
+kblocks <- cohesive.blocks(karate)		# just tells us how many there are
+kblocks									# calling it provides a summary of the block structure
+
+plotHierarchy(kblocks)
+
+```
+
+## Cohesion
+
+
+```{r, echo=TRUE}
+plot(kblocks, karate, vertex.size=6)	# take a look
+```
+
+## Hierarchical Clustering
+```{r, echo=TRUE, results='hide'}
+A = get.adjacency(karate, sparse=FALSE)
+
+# Pearson similarity
+S = cor(A, method="pearson")
+
+# distance matrix
+D = 1-S
+
+# distance object
+d = as.dist(D)
+
+# average-linkage clustering method
+cc = hclust(d, method = "average")
+
+# plot dendrogram
+plot(cc)
+
+# draw blue borders around clusters
+clusters.list = rect.hclust(cc, k = 4, border="blue")
+
+```
+
+## Hierarchical Clustering
+```{r }
+# plot dendrogram
+plot(cc)
+
+# draw blue borders around clusters
+clusters.list = rect.hclust(cc, k = 4, border="blue")
+
+```
+
+## Hierarchical Clustering
+
+```{r, echo=TRUE}
+# cut dendrogram at 4 clusters
+clusters = cutree(cc, k = 4)
+
+# plot graph with clusters
+plot(karate, vertex.color=clusters)
+```
+
+
+## Modularity Maximization
+
+General notion of the “groupiness” within a complete network: 
+    - generally thought of as describing a tendency towards having more in-group than out-group ties
+    - in-/out- groups are NOT defined on node characteristics 
+(ala homophily), but on tie-patterns
+    - typically estimated through divisive/agglomerative assignment
+
+
+![](images/modularity_formula.jpg)
+
+where:
+
+- s indexes clusters in the network
+- ls is the number of lines in cluster s
+- ds is the sum of the degrees of s
+- L is the total number of lines
+
+
+## Newman-Girvan (fast-greedy) 
+
+Newman-Girvan is a divisive approach:
+- Find edge with highest betweenness & remove
+- Calculate community groups & fitness
+- Iterate over 1-2 (as many as N times)
+How to define “fitness”?
+- Community-based mixing matrix (proportion of edges w/in & across groups) 
+- Compute matrix “trace” (the sum of the main diagonal)
+    - High values indicate well identified partitions
+- Identify cross-group links (via row/col sums)
+- Modularity = sum of difference between diagonal & off diagonal elements
+    - High values indicate a more partitioned / segmented (modular) network
+    - Typically examined for local maximization
+
+## Newman-Girvan (fast-greedy) 
+```{r, echo=TRUE, results='hide'}
+fg_comms <- cluster_fast_greedy(karate)
+
+V(karate)$fg_comms <- fg_comms$membership
+
+plot.igraph(karate, vertex.color=V(karate)$fg_comms)
+
+```
+## Louvain (modularity optimization)
+
+Louvain (Blondel et al. 2008) is a modularity optimization approach: 
+-Optimize modularity on all nodes then iterate
+  - Does switching the node to another group increase modularity?
+- stop at solution that produces the largest increase in modularity
+
+## Louvain (modularity optimization)
+
+```{r, echo=TRUE, results='hide'}
+lv_comms <- cluster_louvain(karate)
+
+V(karate)$lv_comms <- lv_comms$membership
+
+plot.igraph(karate, vertex.color=V(karate)$lv_comms)
+
+```
+
+## Louvain (modularity optimization)
+
+```{r}
+
+plot.igraph(karate, vertex.color=V(karate)$lv_comms)
+
+```
+
+## Walktrap (Random Walks)
+
+Walktrap community detection locates subgraphs via random walks. Nodes that are connected via short random walks will be clustered together.
+
+A random walk is exactly as it sounds: Imagine traversing nodes randomly along available edges.
+
+## Walktrap (Random Walks)
+
+```{r, echo=TRUE, results='hide'}
+wt_comms <- cluster_walktrap(karate)
+
+V(karate)$wt_comms <- wt_comms$membership
+
+plot.igraph(karate, vertex.color=V(karate)$wt_comms)
+
+```
+
+## Walktrap (Random Walks)
+
+```{r, echo=FALSE}
+
+plot.igraph(karate, vertex.color=V(karate)$wt_comms)
+
+```
+
+## Compare Modularity
+
+modularity(x, membership, weights = NULL, ...)
+
+```{r, echo=TRUE}
+
+modularity(karate, lv_comms$membership)
+
+modularity(karate, fg_comms$membership)
+
+modularity(karate, wt_comms$membership)
+
+modularity(karate, clusters)
+
+
+```
+
+## Example: Legislative Networks
+
+![](images/moody_mucha_graph.jpg)
+
+## Example: Scientific Consensus (Shwed and Bearman 2010)
+
+- 1.Construct a citation network among literature corpus on identified topic.
+- 2.Identify “epistemic period” & “slice” network.
+- 3.Plot citation network modularity (changes) across (2).
+- 4.Declines/equilibrium identify arrival of scientific consensus
+
+
+![](images/schwed_bearman_graphs.jpg)
+
+
+## Example: Scientific Consensus (adams and Light 2015)
+
+- 1.Construct a citation network among literature corpus on identified topic.
+- 2.Identify “epistemic period” & “slice” network.
+- 3.Plot citation network modularity (changes) across (2).
+- 4.Declines/equilibrium identify arrival of scientific consensus
+
+
+![](images/adams_light.jpg)
+
