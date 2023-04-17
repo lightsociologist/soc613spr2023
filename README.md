@@ -2,7 +2,9 @@
 
 Welcome to the online home of Sociology 613, a class on social network analysis at the University of Oregon. We will use Canvas for distributing readings, communication, and turning in assignments and we will use this page for storing slides, workshop material, and problem sets.
 
-The class is taught by [Ryan Light](https://ryanlight.netlify.app/).
+The class is taught by [Ryan Light](https://ryanlight.netlify.app/). The course was greatly influenced by courses by and conversations with [jimi adams](https://jimiadams.github.io/) and [Jim Moody](https://people.duke.edu/~jmoody77/).
+
+### [Syllabus](https://github.com/lightsociologist/soc613spr2023/sna_syllabus_2023.pdf) 
 
 ## Weekly Slides, Workshop Notes, and Homework Sets
 
@@ -32,7 +34,7 @@ Homework: [.pdf](https://github.com/lightsociologist/soc613spr2023/tree/main/hom
 
 ### 005 Centrality and Power
 
-Slides: [.html](https://raw.githack.com/lightsociologist/soc613spr2023/main/lectures/005_centrality/week5_centrality_slides.html) 
+Slides: [.html](https://raw.githack.com/lightsociologist/soc613spr2023/main/lectures/006_centrality/week5_centrality_slides.html) 
 
 Workshop: [.html](https://raw.githack.com/lightsociologist/soc613spr2023/main/lectures/005_centrality/week5_centrality_workshop.html)
 
@@ -40,40 +42,38 @@ Homework: [.pdf](https://github.com/lightsociologist/soc613spr2023/tree/main/hom
 
 ### 006 Cohesion and Community Detection
 
-Slides: [.html] | [.qmd]
+Slides: [.html](https://raw.githack.com/lightsociologist/soc613spr2023/main/lectures/006_cohesion/week6_slides.html) 
 
-Workshop: [.html] | [.qmd]
+Workshop: [.html](https://raw.githack.com/lightsociologist/soc613spr2023/main/lectures/006_cohesion/week6_cohesion_workshop.html) 
 
 Homework: [.pdf](https://github.com/lightsociologist/soc613spr2023/tree/main/homework/006hw/w6_community.pdf)
 
 ### 007 Two-Mode Networks
 
-Slides: [.html] | [.qmd]
+Slides: [.html](https://raw.githack.com/lightsociologist/soc613spr2023/main/lectures/007_affiliation/week8_slides_2021.html) 
 
-Workshop: [.html] | [.qmd]
+Workshop: [.html](https://raw.githack.com/lightsociologist/soc613spr2023/main/lectures/007_affiliation/week7_affiliation_workshop.html) 
 
 Homework: TBD
 
 ### 008 Diffusion and Preliminary Statistics
 
-Slides: [.html] | [.qmd]
-
-Workshop: [.html] | [.qmd]
+Workshop: [.html](https://raw.githack.com/lightsociologist/soc613spr2023/main/lectures/008_prelim_stat/week8_intro_to_network_stats.html) 
 
 Homework: [.pdf](https://github.com/lightsociologist/soc613spr2023/tree/main/homework/008hw/w8_intro_stats.pdf)
 
 ### 009 Introduction to Statistical Models
 
-Slides: [.html] | [.qmd]
+Slides: [.html](https://raw.githack.com/lightsociologist/soc613spr2023/main/lectures/009_ergms/week9_slides.html) 
 
-Workshop: [.html] | [.qmd]
+Workshop: [.html](https://raw.githack.com/lightsociologist/soc613spr2023/main/lectures/009_ergms/week9_ergm_wksp.html) 
 
 Homework: [.pdf](https://github.com/lightsociologist/soc613spr2023/tree/main/homework/009hw/w9_ergm.pdf)
 
 ### 010 Oddities, Advanced Models, and Next Steps
 
-Slides: [.html] | [.qmd]
+Slides: TBD
 
-Workshop: [.html] | [.qmd]
+Workshop: TBD
 
 Homework: TBD
