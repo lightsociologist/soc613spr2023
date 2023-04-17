@@ -15,7 +15,6 @@ mixmat <- function(mygraph, attrib, use.density=TRUE) {
   attlist <- sort(unique(get.vertex.attribute(mygraph,attrib)))
   
   numatts <- length(attlist)
-  
   # build an empty mixing matrix by attribute
   mm <- matrix(nrow=numatts, 
                ncol=numatts,
