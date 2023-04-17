@@ -1,6 +1,6 @@
 # Sociology 613: Social Network Analysis
 
-Welcome to the online home of Sociology 613([Syllabus](https://github.com/lightsociologist/soc613spr2023/tree/main/sna_syllabus_2023.pdf)), a class on social network analysis at the University of Oregon. We will use Canvas for distributing readings, communication, and turning in assignments and we will use this page for storing slides, workshop material, and problem sets.
+Welcome to the online home of Sociology 613 ([Syllabus](https://github.com/lightsociologist/soc613spr2023/tree/main/sna_syllabus_2023.pdf)), a class on social network analysis at the University of Oregon. We will use Canvas for distributing readings, communication, and turning in assignments and we will use this page for storing slides, workshop material, and problem sets.
 
 The class is taught by [Ryan Light](https://ryanlight.netlify.app/). The course was greatly influenced by courses by and conversations with [jimi adams](https://jimiadams.github.io/) and [Jim Moody](https://people.duke.edu/~jmoody77/).
 
