@@ -18,11 +18,17 @@ Many statistics can be developed by summing over the alter characteristics and d
 
 SNA scholars have also developed packages to simplify these tasks although the data structures are not always obvious. egor is a recent package that looks particularly promising for these tasks and is derived from the deprecated egonetR that was popular (Note the main importing functions are onefile_to_egor, twofile_to_egor, threefile_to_egor that each have different data structure expectations.)
 
-For this tutorial we use igraph to observe local network characteristics within a whole graph. 
+For this tutorial we use igraph to observe local network characteristics within a whole graph. We also load the netseg pacakge for mixing matrices. 
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
+
+```{r results='hide', echo=TRUE, message=FALSE}
+library(igraph)
+library(netseg)
+```
+
 ## Node Degree
 Node degree is the most basic and one of the most widely used network measures. It is inherently a local network measure and each node has a degree score, but we can also talk about the average degree for the network as a whole.
 
@@ -33,7 +39,6 @@ We can find degree in igraph and we can also turn to our adjacency matrix to see
 degree(g) creates a nodal undirected (or total) degree vector.
 
 ```{r results='hide', echo=TRUE, message=FALSE}
-library(igraph)
 valente <- read.graph("data/valente.net", format="pajek")
 gender <- as.matrix(read.table("data/valente.clu", skip=1))	
 V(valente)$gender <- as.vector(gender)					
@@ -177,9 +182,8 @@ mean(alter_mean(valente,"gender"))
 We may want to know how many in-group or out-group ties there are. In sociology, this offers a good indication of social closure. We may also think about it as one indication of network segregation.
 
 ```{r}
-source("scripts/mixmat.R")	# don’t forget the quotes! 
 plot.igraph(valente, vertex.color=V(valente)$gender*2)
-mixmat(valente, 'gender', use.density=F)	# the density option would provide proportional representation
+mixingm(valente, 'gender')	# the density option would provide proportional representation
 ```
 
 Now let's compare to a random graph.
@@ -192,7 +196,7 @@ V(rg)$gender <- sample(c(0,1), length(V(rg)), replace=T, prob=c(22/37, 15/37))	#
 plot(rg, vertex.label= NA, edge.arrow.size=0.02,vertex.size = 5, vertex.color=V(rg)$gender*2, xlab = "Erdos-Renyi Random Graph")
 
 
-mixmat(rg, 'gender', use.density=F)	# If that’s repeatedly highly assortative, we’re in trouble (occasionally it will be)!
+mixingm(rg, 'gender')	# If that’s repeatedly highly assortative, we’re in trouble (occasionally it will be)!
 ```
 
 Note that your results will differ from mine. These are random draws.
