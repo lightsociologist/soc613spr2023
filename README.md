@@ -35,7 +35,7 @@ Homework: [.pdf](https://github.com/lightsociologist/soc613spr2023/tree/main/hom
 
 ### 005 Centrality and Power
 
-Slides: [.html](https://raw.githack.com/lightsociologist/soc613spr2023/main/lectures/006_centrality/week5_centrality_slides.html) 
+Slides: [.html](https://raw.githack.com/lightsociologist/soc613spr2023/main/lectures/005_centrality/week5_centrality_slides.html) 
 
 Workshop: [.html](https://raw.githack.com/lightsociologist/soc613spr2023/main/lectures/005_centrality/week5_centrality_workshop.html)
 
