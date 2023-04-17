@@ -26,7 +26,7 @@ Homework:[.pdf](https://github.com/lightsociologist/soc613spr2023/tree/main/home
 
 ### 004 Network Composition, Distance, and Balance
 
-Workshop: [.html](https://raw.githack.com/lightsociologist/soc613spr2023/main/lectures/004_local/week4_local.html) | [.rmd](https://github.com/lightsociologist/soc613spr2023/tree/main/lectures/004_local/week4_local.rmd)
+Workshop: [.html](https://raw.githack.com/lightsociologist/soc613spr2023/main/lectures/004_local/week4_local.html) | [.rmd](https://github.com/lightsociologist/soc613spr2023/tree/main/lectures/004_local/week4_local.Rmd)
 
 Homework: 
 
