@@ -1,6 +1,5 @@
 ---
 title: 'Week 3: Introduction to Network Visualization'
-date: "April 19, 2023"
 output:
   html_document:
     df_print: paged
