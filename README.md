@@ -51,7 +51,7 @@ Homework: [.pdf](https://github.com/lightsociologist/soc613spr2023/tree/main/hom
 
 ### 007 Two-Mode Networks
 
-Slides: [.html](https://raw.githack.com/lightsociologist/soc613spr2023/main/lectures/007_affiliation/w8_slides_2021.html) 
+Slides: [.html](https://raw.githack.com/lightsociologist/soc613spr2023/main/lectures/007_affiliation/w7_slides.html) 
 
 Workshop: [.html](https://raw.githack.com/lightsociologist/soc613spr2023/main/lectures/007_affiliation/w7_affiliation_workshop.html) 
 
