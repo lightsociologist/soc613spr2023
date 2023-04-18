@@ -1,7 +1,5 @@
 ---
 title: 'Week 7: Affiliation Networks'
-author: "Ryan Light"
-date: "May 10, 2021"
 smaller: TRUE
 output: 
   ioslides_presentation:
@@ -11,6 +9,16 @@ output:
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE)
 ```
+
+```{r, message=FALSE}
+library(igraph)
+library(ggraph)
+library(udpipe)
+library(dplyr)
+library(tidygraph)
+library(ggforce)
+```
+
 
 ## Affiliation Networks
 How do social actors or entities “hang” together?
@@ -119,7 +127,7 @@ bipartite.mapping(g) tells us if we are working with bipartite network.
 
 library(igraph)
 
-ceo.bip <- read.graph("CEOS.net", format="pajek")
+ceo.bip <- read.graph("data/CEOS.net", format="pajek")
 
 bipartite.mapping(ceo.bip)
 
@@ -259,6 +267,153 @@ ceos <-  ceo.mat %*% t(ceo.mat)
 ceos.g <- as.undirected(simplify(graph_from_adjacency_matrix(ceos)))
 
 plot(ceos.g, vertex.shape="square", vertex.color="gold")
+
+```
+
+
+## Text Networks
+
+Text networks are increasingly common and relatively simple methods for document classification and/or generating thematic relationships across texts.
+
+The goal is data reduction: Take a bunch of texts and simplify the relationship between them and/or their ideas.
+
+Fundamentally, these are bipartite networks consisting of documents and words.
+
+## Processing Texts
+
+    1. Find a collection of texts
+    2. Force the collection into a .csv (etc.)
+    3. Preprocess the text data
+        - Remove stop words and or select POS (e.g. nouns)
+        - N-grams?
+        - Word length
+        - Common words
+    4. Build document by word matrix
+        - "Bag of words:" Word order doesn't matter
+        - Weighted elements?: Common weight is tfidf
+    5. Project to terms or documents
+    6. Plot
+
+## The textnets package
+
+To simplify this process, Chris Bail (https://github.com/cbail/textnets) is developing a package to construct textnets. Let's build a network of documents from the Web of Science on "computational social science."
+
+```{r, echo=T, message=FALSE}
+comp <- read.csv("data/comp_socsci.csv")
+```
+
+## Clean Data
+
+PrepText(text)
+
+PrepTextNounPhrases(text) 
+
+Note the POS-tagger in PTNP takes some time to run.
+
+```{r, echo=T}
+
+comp <- comp %>% filter(AB != "")
+
+comp$text <- paste(comp$DE, comp$TI, comp$AB)
+
+#english-lines
+
+m_eng_lines   <- udpipe_download_model(language = "english-lines")
+m_eng_lines_path <- m_eng_lines$file_model
+m_eng_lines_loaded <- udpipe_load_model(file=m_eng_lines_path)
+
+text_annotated <- udpipe_annotate(m_eng_lines_loaded, x = comp$text) %>%
+      as.data.frame() %>%
+      select(-sentence)
+
+nouns <- text_annotated %>% filter(upos=="NOUN")
+
+```
+
+## Clean Data
+
+Get rid of short words, numbers, and words that appear fewer than 11 times.
+
+```{r, echo=T}
+
+nouns$lemma <- tolower(nouns$lemma)
+
+word_count <-as.data.frame(table(nouns$lemma))
+
+word_count <- rename(word_count, lemma = Var1)
+
+word_count$isnum <- nchar(gsub("[^0-9]+", "", word_count$lemma))
+
+word_count <- word_count %>% filter(isnum==0)
+
+word_count$lemma <- as.character(word_count$lemma)
+
+word_count$wlength <- nchar(word_count$lemma)
+
+word_count <- word_count %>% filter(wlength>3)
+
+word_count <- word_count %>% filter(Freq>10)
+
+word_count$keep <- 1
+
+noun_fin <- left_join(nouns, word_count)
+
+noun_fin[is.na(noun_fin)] = 0
+
+noun_fin <- noun_fin %>% filter(keep==1)
+
+```
+
+## Build a network and viz
+
+```{r, echo=T, message=FALSE}
+
+noun_edge <- noun_fin %>% select(lemma, doc_id)
+
+noun.g <- graph_from_data_frame(noun_edge)
+
+V(noun.g)$type <- bipartite.mapping(noun.g)$type
+
+n1mode.g <- bipartite_projection(noun.g, multiplicity = TRUE, which=FALSE)
+
+V(n1mode.g)$wrd_cnt <- word_count$Freq
+
+n1mode.g <- delete.vertices(n1mode.g, V(n1mode.g)[ degree(n1mode.g)==0 ]) 
+
+plot(n1mode.g)
+
+```
+
+## Build a network and viz
+
+```{r, message=FALSE}
+
+
+n1sub.g <- delete.edges(n1mode.g, which(E(n1mode.g)$weight < (quantile(E(n1mode.g)$weight, .90)
+)))
+
+
+n1sub.g <- delete.vertices(n1sub.g, V(n1sub.g)[ degree(n1sub.g)==0 ]) 
+
+cls_fast <- cluster_fast_greedy(n1sub.g)
+
+membs <- data.frame(clusters=as.numeric(cls_fast$membership))
+
+clrs <- data.frame(clusters=c(1,2,3,4,5), clr=c("purple", "yellow", "green", "skyblue", "red"))
+
+membs <- left_join(membs, clrs)
+
+ggraph(n1sub.g, layout = "kk") + 
+  geom_edge_link(alpha=.25, aes(width=weight), color="gray") + 
+  geom_node_point(aes(size=wrd_cnt, fill = membs$clr), shape=21) +
+  geom_node_text(aes(label=ifelse(wrd_cnt > 100, name, NA))) +
+  scale_size_continuous(range = c(2, 20))   +
+  theme_void() +
+  theme(legend.position = "none") +
+  labs(title="Computational Social Science Text Network", caption = "This graph visualizes the text network for computational social science based on words in the abstract, title, and keywords.
+  Nodes are words. Edges are the count of overlaps across articles. Communities using FastGreedy. 
+  Node labels are words that appear in at least 100 articles.")
+
 
 ```
 
