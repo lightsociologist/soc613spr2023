@@ -9,22 +9,19 @@ output:
 knitr::opts_chunk$set(echo = FALSE)
 ```
 
-## Visualization
-
-The ability to visualize complex information is one appealing aspect of social network analysis. It is important to consider principles of good visualization as it is easy to seduced by the value of a network visualization when it can complicate comprehension rather than facilitate it. Thankfully, there are numerous strategies for plotting networks to help tell narratives about your data.
+The ability to visualize complex information is a central strength of social network analysis. It is important to consider principles of good visualization as it is easy to seduced by the value of a network visualization when it can complicate comprehension rather than facilitate it. Thankfully, there are numerous strategies for plotting networks to help tell stories about your data.
 
 You can accomplish a lot of these tasks in R.
 
 Note: Katherine Ognyanova delivers the best workshops on visualization and her materials are [here](https://kateto.net/network-visualization).
 
-Note: There are numerous network visualization packages in R, including the network package and ways of visualizing networks in the ggplot framework (see ggally and ggnet) as well as network movie packages, packages for correlational networks, bipartite networks, discpline specific networks, and other specific circumstances. We will focus primarily on igraph the most popular at this moment.
+Note: There are numerous network visualization packages in R, including the network package and ways of visualizing networks in the ggplot framework (see ggraph) as well as network movie packages, packages for correlational networks, bipartite networks, discpline specific networks, and other specific circumstances. We will focus primarily on igraph here with a brief ggraph example.
 
 ## Visualization using igraph
 
-First, we need to load the igraph (the workhorse for the course), networkD3 (for interactive graaphs), and ggraph/tidygraph (for network viz) package into R.
+First, we need to load the igraph (the workhorse for the course), networkD3 (for interactive graaphs), and ggraph (for network viz) package into R. ggforce is a package to add elements to ggraph.
 
 ```{r, message=FALSE, echo=TRUE}
-#install.packages("igraph")
 library(igraph)
 library(networkD3)
 library(ggraph)
@@ -39,37 +36,45 @@ Note: You can find a lot of cool networks through the links [here](https://dnac.
 
 ## Bringing Data Into igraph: importing csv Files
 
-First, we can bring in the data into r using the base function read.csv(). The first example is an undirected toy network. Note that we will keep the column names as indicated by "header=T"
+First, we can bring in the data into r using the base function read.csv(). The first example is an undirected toy network. Note that we will keep the column names as indicated by "header=T" and that we store the matrix as a matrix with "as..matrix".
 
 ```{r, echo=TRUE}
-toy.undirected <- read.csv("data/simple_undirected.csv", header=T)	 # reading in the undirected mixing example
+
+toy.undirected <- as.matrix(read.csv("data/simple_undirected.csv", header=T))
+
+toy.nodes <- read.csv("data/toy_node_attrs.csv")
 
 print(toy.undirected)
+
 ```
 
+If we look above we can see one of the main ways to store network data - the adjacency matrix. Adjacency matrices consist of nodes in the rows and columns. In one mode networks, the rows and columns are the same. The cells in the matrix represent the presence of a connection (or not). This graph is undirected - so it is symmetrical - and the unweighted - so the numbers are just 1s and 0s. 
 
-Now we need to clean the data up a bit to make an edge list. If we look above, we can see another way of storing network data - the adjacency list. Adjacency lists consist of nodes and the alters that are adjacent to them. So person 6 is connected to alters 4 and 5. We first separate the adjacency list and the nodal attribute. We can use the row() function to transform the adjacency list into a edge list.
+We have also loaded a file of nodal attributes or a list of node properties.
+
+Igraph requires that we make an igraph object and there are several ways of doing so. In this example, we use graph_from_adjacency_matrix to make this object. We indicate that the network is undirected.
 
 ```{r, echo=TRUE}
 
-ties<- subset(toy.undirected,select=c(alt1,alt2,alt3))	# stripping off just the adjacency list
-nodes <- subset(toy.undirected,select=c(id,attr1))		# stripping off just the attributes
-toy.df <- data.frame(snd = row(ties)[!is.na(ties)], rcv = ties[!is.na(ties)])	
+toy.g <- graph_from_adjacency_matrix(toy.undirected, mode="undirected")
 
 ```
 
-Igraph requires that we make an igraph object and there are several ways of doing so. In this example, we use graph.data.frame() to make this object. We indicate that the network is undirected and point igraph to the nodes data frame for information on nodal attributes.
+No we use igraphs notation - V(g)$thing <- thing - to store node attributes in the igraph object if both objects are ordered the same way.
 
 ```{r, echo=TRUE}
-toy.g <- graph.data.frame(toy.df, directed=F, vertices=nodes)	# converting to an igraph “graph” object
 
+V(toy.g)$name <- toy.nodes$name
+
+V(toy.g)$attribute <- toy.nodes$attr1
 
 ```
 
-We can use plot.igraph() function to visualize the graph. We use the attribute that was introduced from nodes to color the nodes (Be sure it’s the same, *2 is to avoid using the same color for the label/node color).
+
+We can use plot.igraph() function to visualize the graph. We use the attribute that was introduced from nodes to color the nodes.
 
 ```{r , echo=TRUE}
-plot.igraph(toy.g, vertex.color=V(toy.g)$attr1*2)	
+plot.igraph(toy.g, vertex.color=V(toy.g)$attribute)	
 ```
 
 The above toy graph consisted of undirected ties. Some graphs have directed ties. Let's check out how igraph plots these.
@@ -77,13 +82,9 @@ The above toy graph consisted of undirected ties. Some graphs have directed ties
 Note we can also use the graph_from_adj_list function to bring adjacency lists into igraph. If you want an undirected graph, then mode="all". And if you want a directed graph of sent ties, then mode="out".
 
 ```{r, echo=TRUE}
-toy.directed <- read.csv("data/simple_directed.csv", header=T)	
-nodes <- subset(toy.directed,select=c(id,attr1))		
-ties <- subset(toy.directed,select=c(alt1,alt2,alt3))	
+toy.directed <- as.matrix(read.csv("data/simple_directed.csv", header=T))	
 
-ties[is.na(ties)] <- 0
-
-toy.g.directed <- graph_from_adj_list(ties+1, mode="out")
+toy.directed.g <- graph_from_adjacency_matrix(toy.directed, mode="directed")
 
 ```
 
@@ -91,7 +92,9 @@ You can store node or vertex attributes using V(g)$attribute <- Attribute as fol
 
 ```{r, echo=TRUE}
 
-V(toy.g.directed)$attribute <- nodes$attr1
+V(toy.directed.g)$name <- toy.nodes$name
+
+V(toy.directed.g)$attribute <- toy.nodes$attr1
 
 ```
 
@@ -99,16 +102,13 @@ And plot the directed graph.
 
 ```{r, echo=TRUE}
 
-plot.igraph(simplify(toy.g.directed), vertex.color=V(toy.g.directed)$attribute*2)
- 
-V(toy.g.directed)         # lists the specified vertices
-E(toy.g.directed)					# gives the edgelist of the specified graph
+plot.igraph(simplify(toy.directed.g), vertex.color=V(toy.directed.g)$attribute)
 
 ```
 
 Note that the simplify function removes any loops or multiple edges.
 
-##Bringing Data into igraph: edge lists
+## Bringing Data into igraph: edge lists
 
 You can also write edge lists directly into igraph. Igraph will read each pair as an edge. Here we have indicated an undirected graph by directed=F.
 
@@ -372,7 +372,7 @@ ggraph(valente, layout = "kk") +
     expand = unit(2, "mm"),
     alpha = 0.25,
     position="jitter"
-  ) 
+  ) +
   labs(title="Valente Network", caption = "Friendship ties in an elementary school classroom")
 
 ```
@@ -432,5 +432,5 @@ simpleNetwork(sw.d3$links)
 - Animations of dynamic networks (networkDynamic package)
 - More on Interactive networks 
 - Communities 
-- More on Bipartitie networks
+- More on Bipartite networks
 - Summarize big data
