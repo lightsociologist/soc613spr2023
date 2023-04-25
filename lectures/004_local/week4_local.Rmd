@@ -30,6 +30,45 @@ library(netseg)
 library(ggplot2)
 ```
 
+For this workshop we will return to the Valente school classroom. Remember that the Valente graph is a fifth grade class. We are uploading the graph from a pajek file (.net). We also bring in gender as a key attribute in the classroom. Note that 0s are boys and 1s are girls.
+
+```{r results='hide', echo=TRUE, message=FALSE}
+valente <- read.graph("data/valente.net", format="pajek")
+gender <- as.matrix(read.table("data/valente.clu", skip=1))	
+V(valente)$gender <- as.vector(gender)					
+
+```
+
+There are a couple of different ways of learning basic information about this graph. Let's use functions from igraph. Let check whether it is directed, is it connected or are there multiple components including isolates, number of nodes, and the number of edges.
+
+
+```{r echo=TRUE, message=FALSE}
+
+is.directed(valente)
+
+is.connected(valente)
+
+vcount(valente)
+
+ecount(valente)
+
+```
+
+The network is directed and connected, it has 37 students/nodes, and 145 connections or ties between the students. If it was not connected, we could use components() to identify the number of components and $csize to see the size of those components.
+
+like this for the valente graph:
+
+cmps <- components(valente)
+
+cmps$csize would consist of a vector of component sizes. If those sizes are 1s except for a large component, you can remove them by the following:
+
+isolates <- which(degree(valente)==0)
+
+val2 <- delete.vertices(valente, isolates)
+
+This is identifying isolates or nodes with a degree of 0 and storing it as isolates and then deleteing those isolates from the valente graph and storing the new igraph object as val2. 
+Important note: If your graph has attributes do not remove isolates until after storing those attributes in the igraph with all of the nodes.
+
 ## Node Degree
 Node degree is the most basic and one of the most widely used network measures. It is inherently a local network measure and each node has a degree score, but we can also talk about the average degree for the network as a whole.
 
@@ -37,14 +76,11 @@ Node degree is the number of edges adjacent to a node. It is a basic measure of 
 
 We can find degree in igraph - degree(g) - that creates a nodal undirected (or total) degree vector.
 
-Remember that the Valente graph is a fifth grade class. We are uploading the graph from a pajek file (.net). We also bring in gender as a key attribute in the classroom. Note that 0s are boys and 1s are girls.
 
 ```{r results='hide', echo=TRUE, message=FALSE}
-valente <- read.graph("data/valente.net", format="pajek")
-gender <- as.matrix(read.table("data/valente.clu", skip=1))	
-V(valente)$gender <- as.vector(gender)					
-is.directed(valente)
+
 v_deg <- degree(valente)								
+
 ```
 
 What is the mean degree for the classroom?
@@ -134,7 +170,7 @@ plot.igraph(valente, vertex.color=V(valente)$gender)
 mixingm(valente, 'gender')	# the density option would provide proportional representation
 ```
 
-Now let's compare to a random graph.
+Now let's compare to a random graph with the same number of nodes and edges. We use the erdos.renyi.game() function to do make this random graph.
 
 ```{r}
 rg <- erdos.renyi.game(length(V(valente)), length(E(valente)), type="gnm", directed=T)	# a random graph with the same number of nodes & edges as the Valente graph above
@@ -144,7 +180,7 @@ V(rg)$gender <- sample(c(0,1), length(V(rg)), replace=T, prob=c(22/37, 15/37))	#
 plot(rg, vertex.label= NA, edge.arrow.size=0.02,vertex.size = 5, vertex.color=V(rg)$gender*2, xlab = "Erdos-Renyi Random Graph")
 
 
-mixingm(rg, 'gender')	# If that’s repeatedly highly assortative, we’re in trouble (occasionally it will be)!
+mixingm(rg, 'gender')	
 ```
 
 Note that your results will differ from mine. These are random draws.
@@ -205,9 +241,46 @@ head(valente_ego_dens)
 
 ```
 
+We may want to know the relationship between ego network density and ego network size. Are larger networks more dense.
+
+We can use the ego_size() function to calculate the size of each ego's local network.
+
+```{r, echo=TRUE}
+
+ego.size <- ego_size(valente)
+
+```
+
+And we can check out the average ego network size now by just using the mean() function in base R.
+
+```{r, echo=TRUE}
+
+mean(ego.size)
+
+```
+
+We can store these in a data frame for easy access.
+
+```{r, message=FALSE}
+
+den.df<-data.frame(density=valente_ego_dens, size=ego.size)
+
+```
+
+And we can plot the relationship in ggplot.
+
+```{r, message=FALSE}
+
+ggplot(data=den.df, aes(size, density))+
+  geom_point()+
+  geom_smooth(method='lm', level=.95, formula=y~x)+
+  theme(panel.background = element_blank())
+
+```
+
 ## Transitivity
 
-Transitivity is a measure of local clustering. It consists of the proportion of closed triads given all possible triads. The igraph default is for each node but you can also calculate for the whole graph. This is an indication of how much local clustering is occuring at the graph as a whole.
+Transitivity is a measure of local clustering. It consists of the proportion of closed triads given all possible triads. The igraph default is for each node but you can also calculate for the whole graph. This is an indication of how much local clustering is occuring at the graph as a whole. Note that specifying "type=local" we are calculating over each respondents ego network.
 
 
 ```{r, echo=TRUE}

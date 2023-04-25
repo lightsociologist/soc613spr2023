@@ -1,0 +1,297 @@
+---
+title: "HW4 Cheat Sheet"
+format: 
+  html:
+    code-fold: true
+    embed-resources: true
+execute:
+  warning: false
+editor: source
+---
+
+This is a cheat sheet for the fourth homework. It works through each step in R.
+
+First, you need the following packages.
+
+```{r, message=FALSE}
+library(igraph)
+library(ggplot2)
+library(netseg)
+```
+
+Next, we bring the data into igraph. This school data is stored as a pajek file.
+
+
+```{r, message=FALSE}
+
+sch23 <- read.graph("data/sch23.net", format="pajek")
+
+```
+
+Now, we can load attribute data for this school using read.table and store the attributes in the igraph object (Note that 1=Girl and 2=Boy).
+
+```{r, message=FALSE}
+
+att <- read.table("data/sch23_attr.txt", header=T, sep=" ")
+
+V(sch23)$sex <- att$sex
+V(sch23)$race <- att$race
+V(sch23)$grade <- att$grade
+V(sch23)$school <- att$school
+
+```
+
+## 1. Compute Local Network Composition Measures 
+
+Let's examine some basic features of the network before turning to the local context.
+
+```{r, message=FALSE}
+
+is.directed(sch23)
+
+is.connected(sch23)
+
+vcount(sch23)
+
+ecount(sch23)
+
+```
+The graph is not connected. Let's see what the components look like.
+
+```{r, message=FALSE}
+
+comps <- components(sch23)
+
+comps$csize
+
+```
+We can see that there are 12 nodes with no degree. This could be lonely folks or maybe they weren't present at the time that the survey was asked or maybe they didn't want to finish the survey. It may be hard to tell. For our purposes, let's assume it is a product of the survey and not isolation in a social sense. We should remove them.
+
+```{r, message=FALSE}
+
+isolates <- which(degree(sch23)==0) 
+
+school <- delete.vertices(sch23, isolates)
+
+```
+
+The school graph is the giant connected component of the sch23 graph. Everything will be completed on this graph.
+
+First, we can compute local network size for each node or the degree of the network.
+
+```{r, message=FALSE}
+
+v_deg<- degree(school)
+v_indeg <- degree(school, mode="in")					
+v_outdeg <- degree(school, mode="out")	
+
+mean(v_deg)
+
+```
+
+Next, we can look at density. Let's look at the density for the entire graph.
+
+```{r, message=FALSE}
+
+graph.density(school)
+
+```
+
+
+Now we get density for each ego: Note that density returns NaN for isolates 
+
+```{r, message=FALSE}
+
+sch_ego_dens <- make_ego_graph(school, 1) %>%
+  vapply(graph.density, numeric(1))
+
+head(sch_ego_dens)
+
+```
+
+We can also look at ego network size for each of the students in the school.
+
+```{r, message=FALSE}
+
+ego.size <- ego_size(school)
+
+mean(ego.size)
+
+```
+
+For future use, we can store as a data frame.
+
+```{r, message=FALSE}
+
+den.df<-data.frame(density=sch_ego_dens, size=ego.size)
+
+```
+
+Now we can calculate density both for the entire network and for each ego (type=local). We store all of this as a data frame as well.
+
+```{r, message=FALSE}
+
+transitivity(school)
+
+transitive.sch <- transitivity(school, type="local") 
+
+tr.df <- data.frame(transitivity=transitive.sch, size=ego.size)
+
+```
+
+Here we calculate constraint (Note that constraint is undefined for isolates) and store it.
+
+```{r, message=FALSE}
+
+constraint.sch <- constraint(school)
+
+con.df <- data.frame(constraint=constraint.sch, size=ego.size)
+
+```
+
+## 2. Evaluate Local Variation in the Graph
+
+First let's construct a mixing matrix for sex.
+
+```{r, message=FALSE}
+
+mixingm(school, "sex")
+
+```
+
+
+What about mixing across grades?
+
+```{r, message=FALSE}
+
+mixingm(school, "grade")
+
+```
+
+We can also look at assortativity.
+
+```{r, message=FALSE}
+
+assortativity(school, V(school)$sex)
+
+```
+
+```{r, message=FALSE}
+
+assortativity(school, V(school)$grade)
+
+```
+
+
+And we can look at the odds of a within group tie.
+
+```{r, message=FALSE}
+
+orwg(school, "sex")
+
+```
+```{r, message=FALSE}
+
+orwg(school, "grade")
+
+```
+
+**Bonus: Build random graph for quick comparison**
+
+Here we use erdos.renyi.game to build a graph with the same number of nodes and edges, but with edges randomly drawn
+
+```{r, message=FALSE}
+
+rg <- erdos.renyi.game(length(V(school)), length(E(school)), type="gnm", directed=T)
+
+```
+
+To construct an average attribute we need to see the distribution of girls and boys.
+
+```{r, message=FALSE}
+
+table(V(school)$sex)
+
+```
+
+Now we can add this distribution to randomly assign a sex variable.
+
+```{r, message=FALSE}
+
+V(rg)$sex <- sample(c(1,2), length(V(rg)), replace=T, prob=c(306/679, 361/679))  
+
+```
+
+How does the mixing matrix compare.
+
+```{r, message=FALSE}
+
+mixingm(sch23, "sex", use.density=F)
+
+mixingm(rg, "sex", use.density=F)
+
+```
+
+## 3. Graph and Interpret Results
+
+Plot degree distribution
+
+```{r, message=FALSE}
+sch23.degree <- data.frame(v_deg, v_indeg, v_outdeg)
+
+ggplot(data=sch23.degree, aes(v_deg)) + 
+  
+  geom_histogram(breaks=seq(2,14, by=1),
+                 col="black", 
+                 fill="black", 
+                 alpha = .2)+
+  labs(title="Total Degree Distribution") +
+  labs(x="Degree", y="Count")
+
+
+```
+
+Plot degree of graph and sex
+
+```{r, message=FALSE}
+
+V(sch23)$degree <- v_deg
+
+plot.igraph(sch23, vertex.size=V(sch23)$degree/5, vertex.color=V(sch23)$sex, edge.arrow.size=.01,
+            vertex.label=NA)
+
+```
+
+### Example Rough Bonus Plots
+
+Plot Transitivity by Size
+
+```{r, message=FALSE}
+
+ggplot(data=tr.df,aes(size, transitivity))+
+  geom_point()+
+  geom_smooth(method='lm', level=.95, formula=y~x)+
+  theme(panel.background = element_blank())
+
+```
+
+Plot Density by Size (Note error related to isolates)
+
+```{r, message=FALSE}
+ggplot(data=den.df, aes(size, density))+
+  geom_point()+
+  geom_smooth(method='lm', level=.95, formula=y~x)+
+  theme(panel.background = element_blank())
+
+```
+
+Plot Constraint by Size (Note error related to isolates)
+
+```{r, message=FALSE}
+ggplot(data=con.df, aes(size, constraint))+
+  geom_point()+
+  geom_smooth(method='lm', level=.95, formula=y~x)+
+  theme(panel.background = element_blank())
+```
+
+
