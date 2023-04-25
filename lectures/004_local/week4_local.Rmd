@@ -18,7 +18,7 @@ Many statistics can be developed by summing over the alter characteristics and d
 
 SNA scholars have also developed packages to simplify these tasks although the data structures are not always obvious. egor is a recent package that looks particularly promising for these tasks and is derived from the deprecated egonetR that was popular (Note the main importing functions are onefile_to_egor, twofile_to_egor, threefile_to_egor that each have different data structure expectations.)
 
-For this tutorial we use igraph to observe local network characteristics within a whole graph. We also load the netseg pacakge for mixing matrices. 
+For this tutorial we use igraph to observe local network characteristics within a whole graph. We also load the netseg pacakge for mixing matrices and measures of network segregation as well as ggplot2. 
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
@@ -27,6 +27,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```{r results='hide', echo=TRUE, message=FALSE}
 library(igraph)
 library(netseg)
+library(ggplot2)
 ```
 
 ## Node Degree
@@ -34,9 +35,9 @@ Node degree is the most basic and one of the most widely used network measures. 
 
 Node degree is the number of edges adjacent to a node. It is a basic measure of connectivity and "importance." In directed graphs may consider *in-degree* the number of edges sent TO a node and *out-degree* the number of edges sent FROM a node or the total degree which is their sum.
 
-We can find degree in igraph and we can also turn to our adjacency matrix to see how this works.
+We can find degree in igraph - degree(g) - that creates a nodal undirected (or total) degree vector.
 
-degree(g) creates a nodal undirected (or total) degree vector.
+Remember that the Valente graph is a fifth grade class. We are uploading the graph from a pajek file (.net). We also bring in gender as a key attribute in the classroom. Note that 0s are boys and 1s are girls.
 
 ```{r results='hide', echo=TRUE, message=FALSE}
 valente <- read.graph("data/valente.net", format="pajek")
@@ -46,32 +47,27 @@ is.directed(valente)
 v_deg <- degree(valente)								
 ```
 
-In-degree:
-degree(g, mode="in")
+What is the mean degree for the classroom?
 
-Out-degree:
-degree(g, mode="out")
+```{r echo=TRUE, message=FALSE}
+
+mean(v_deg)
+
+```
+
+We can find the in-degree - or the number of received nominations - or the out-degree - the number of sent nominations by specifying the mode.
 
 ```{r message=FALSE, echo=TRUE}
 v_indeg <- degree(valente, mode="in")					
 v_outdeg <- degree(valente, mode="out")				
-#Sum to check
-v_deg==v_indeg + v_outdeg								
 ```
 
 ## Degree Distribution
 
-Let's see how degree is distributed in the Valente data by plotting the distribution using ggplot2. Ggplot2 is helpful for a bunch of graphic needs notes that there is a recipe/grammar to constucting graphs. 
-
-You begin with data and add the "aesthetic mapping" or what you want to plot and then add layers and other specifications.
-
-A generic histogram might look like this:
-
-ggplot(data=df, aes=(variable)) + geom_histogram()
+Let's see how degree is distributed in the Valente data by plotting the distribution using ggplot. 
 
 
 ```{r message=FALSE, echo=TRUE}
-library(ggplot2)
 
 valente.degree <- data.frame(v_deg, v_indeg, v_outdeg)
 
@@ -108,7 +104,7 @@ ggplot(data=valente.degree, aes(v_outdeg)) + geom_histogram(breaks=seq(-1,14, by
 
 We can compare in-degree and out-degree.
 
-```{r message=FALSE, echo=TRUE, fig.show='hide'}
+```{r message=FALSE, echo=TRUE}
 ggplot(data=valente.degree,aes(v_indeg,v_outdeg))+
   geom_point(aes(colour=factor(V(valente)$gender+1)))+
   geom_smooth(method='lm', level=.95, formula=y~x)+
@@ -117,64 +113,16 @@ ggplot(data=valente.degree,aes(v_indeg,v_outdeg))+
 
 ## Network Composition
 
-We can construct a variety of measures of network composition. For example we might just want the percentage of alters with a particular characteristics.
-
-This is simply: (the # of alters with x)/degree. The mean of this simple composition is often reported for the entire network/data set. You can use matrices to construct these measures. 
-
-For gender and the Valente data it would look like this: ADJMAT[32,32] X GENDER[32,2] = RECEIVE&SENT[32,2] 
+We can construct a variety of measures of network composition. For example we first might just want the percentage of nodes with a particular characteristics.
 
 
 ```{r , echo=TRUE}
 
-adjmat <- as_adjacency_matrix(valente)
-
-
 girl <- ifelse(gender==1,1,0)
 boy <- ifelse(gender==0, 1, 0)
 
-gendermat <- cbind(girl, boy)
-
-multiplication <- adjmat %*% gendermat
-
-percent.cat <- data.frame(toboy=multiplication[,2], togirl=multiplication[,1], gender=gender, outgree=v_outdeg)
-
-percent.cat$prop.boy <- percent.cat$toboy/percent.cat$outgree
-
-percent.cat$prop.girl <- percent.cat$togirl/percent.cat$outgree
-
-mean(percent.cat$prop.boy, na.rm=TRUE)
-
-mean(percent.cat$prop.girl, na.rm=TRUE)
-
-
-```
-
-Rather than calling and external function, here I'm going to write one "on the fly" that we want to use. This one will get the mean of an attribute among one's alters (you could conceivably put in another function, like range or standard deviation if your question so warrants.)
-
-```{r}
-alter_mean <- function(graph, attribute, mode="all"){				# mode can also be "in" or "out"
-	mean_attr <- list(0)											# initializing a list
-	for (i in 1:vcount(graph)){										# for all nodes in school
-		ineighbors <- neighbors(graph, i, mode)						# find the neighbors
-		attr <- get.vertex.attribute(graph, attribute, ineighbors)	# finding the neighbors' attribute
-		mean_attr[[i]] <- mean(attr, na.rm=T)						# averaging over the list
-	}
-	return(unlist(mean_attr))										# returning it as a vector
-}
-```
-
-Note: in running this code chunk, all we've done is defined the new function. Now we can use it like we have others.
-
-```{r}
-gender_mean_rcv <- alter_mean(valente, "gender", "in")
-
-mean(gender_mean_rcv) #taking the average across all observations
-mean(gender_mean_rcv, na.rm=T) #removing those who receive no ties.
-
-gender_mean_snd <- alter_mean(valente, "gender", "out")
-mean(gender_mean_snd, na.rm=T) #taking the average across all observations
-
-mean(alter_mean(valente,"gender"))
+mean(girl)
+mean(boy)
 ```
 
 ## Network Composition: Mixing Matrix
@@ -182,7 +130,7 @@ mean(alter_mean(valente,"gender"))
 We may want to know how many in-group or out-group ties there are. In sociology, this offers a good indication of social closure. We may also think about it as one indication of network segregation.
 
 ```{r}
-plot.igraph(valente, vertex.color=V(valente)$gender*2)
+plot.igraph(valente, vertex.color=V(valente)$gender)
 mixingm(valente, 'gender')	# the density option would provide proportional representation
 ```
 
@@ -215,28 +163,22 @@ assortativity(rg, V(rg)$gender)
 
 ```
 
-## Network Composition: IQV
+## Network Composition and Segregation
 
-The Index of Qualitative Variation measures variation among nominal variables. Here, it captures the diversity across ego's alters on a given nominal characteristic. We can think of variation as a product of normalized sum of proportions. So higher scores will translate to greater variation from 0 (or no variation) to 1 (maximal variation). 
+One way of thinking about how a network is segregated is to calculate the odds of a within-group tie. The network segregation package has a function - orwg - to construct this ratio.
 
-Following Marsden (1987) and many others we use Argesti and Argesti (1978:208):
 
-*(1-Sum(Category Proportions)^2)(# of Categories/1-# of Categories)*
-
-See:
-
-Marsden, P. V. (1987). Core discussion networks of Americans. American sociological review, 122-131.
-
-Agresti, A., & Agresti, B. F. (1978). Statistical analysis of qualitative variation. Sociological methodology, 9, 204-237.
 
 ```{r, echo=TRUE}
-source("scripts/jimi_iqv.r")
-v_iqv_gender <- as.data.frame(iqv(valente, "gender"))
-quantile(v_iqv_gender, na.rm=TRUE)
-mean(v_iqv_gender$egonet)
 
+orwg(simplify(valente), "gender") 
+
+orwg(simplify(rg), "gender") 
 ```
 
+So the odds of a same gender tie are 58 times greater than the odds of a tie between boys and girls.
+
+There are numerous other strategies for evaluating network segregation (e.g., Coleman's index of segregation, the index of qualitative variation, etc.). Several of these are available in the netseg package.
 
 ## Network Density
 
@@ -282,7 +224,7 @@ tr.df <- data.frame(transitivity=transitive.valente, size=ego.size)
 We can plot transitivity by ego network size.
 
 
-```{r message=FALSE, echo=FALSE}
+```{r message=FALSE, echo=TRUE}
 ggplot(data=tr.df,aes(transitivity,size))+
   geom_point()+
   geom_smooth(method='lm', level=.95, formula=y~x)+
@@ -291,8 +233,8 @@ ggplot(data=tr.df,aes(transitivity,size))+
 
 And plot transitivity as node size in a network.
 
-```{r message=FALSE, echo=FALSE}
-plot.igraph(valente, vertex.size=transitive.valente*20, edge.arrow.size=.5)
+```{r message=FALSE, echo=TRUE}
+plot.igraph(valente, vertex.size=transitive.valente*20, edge.arrow.size=.5, vertex.color=V(valente)$gender)
 ```
 
 ## Constraint
@@ -318,7 +260,7 @@ con.df <- data.frame(constraint=constraint.valente, size=ego.size)
 
 We can look at the relationship between size and constraint.
 
-```{r message=FALSE, echo=FALSE}
+```{r message=FALSE, echo=TRUE}
 ggplot(data=con.df,aes(constraint,size))+
   geom_point()+
   geom_smooth(method='lm', level=.95, formula=y~x)+
@@ -326,18 +268,18 @@ ggplot(data=con.df,aes(constraint,size))+
 ```
 And plot as node size.
 
-```{r message=FALSE, echo=FALSE}
+```{r message=FALSE, echo=TRUE}
 l <- layout_with_kk(valente)
 
-plot.igraph(valente, vertex.size=con.df$constraint*10, edge.arrow.size=.01, layout=l)
+plot.igraph(valente, vertex.size=con.df$constraint*10, edge.arrow.size=.01, layout=l, vertex.color=V(valente)$gender)
 ```
 
 The inverse of constraint is one way to think about brokerage. The maximal number of Burt's constraint is 1.125. So, if we subtract 1.125 from constraint we have one brokerage score.
 
-```{r message=FALSE, echo=FALSE}
+```{r message=FALSE, echo=TRUE}
 con.df$inv <- 1.125-con.df$constraint
 
-plot.igraph(valente, vertex.size=con.df$inv*10, edge.arrow.size=.5)
+plot.igraph(valente, vertex.size=con.df$inv*10, edge.arrow.size=.5, vertex.color=V(valente)$gender)
 ```
 
 ## Small Worlds
@@ -373,3 +315,4 @@ transitivity(valente)
 
 ```
 
+### *What does this basic comparison suggest for whether the Valente classroom is a small world?*
