@@ -1,0 +1,143 @@
+---
+title: "HW5 Cheat Sheet"
+format: 
+  html:
+    code-fold: true
+    embed-resources: true
+execute:
+  warning: false
+editor: source
+---
+
+This is a cheat sheet for the fifth homework on centrality. It works through each step in R.
+
+First, you need the following packages.
+
+```{r, message=FALSE}
+library(igraph)
+library(ggplot2)
+library(dplyr)
+```
+
+Next, we bring the data into igraph. There are two networks as there are two towns.
+
+
+```{r, message=FALSE}
+
+k1 <- read.graph("data/Korea1.net", format="pajek")
+
+k2 <- read.graph("data/Korea2.net", format="pajek")
+
+
+```
+
+Now we can load attributes data - (1=adopted modern methods, 2=did not adopt modern methods) - and store the data in the igraph objects.
+
+```{r, message=FALSE}
+
+adopt1 <- as.matrix(read.table("data/Korea1_adopters.clu", skip=1))
+
+adopt2 <- as.matrix(read.table("data/Korea2_adopters.clu", skip=1))
+
+
+V(k1)$adopt <- adopt1
+
+V(k2)$adopt <- adopt2
+
+```
+
+Let's graph the two networks with node color varying by adoption or not.
+
+```{r, message=FALSE}
+
+plot(k1, vertex.color=as.factor(V(k1)$adopt))
+
+plot(k2, vertex.color=as.factor(V(k2)$adopt))
+
+```
+
+Let's use degree(g), closeness(g), betweenness(g), and eigen_centrality(g) to calculate various centrality measures for each network.
+
+```{r, message=FALSE}
+
+k1.df <- data.frame(adopt=V(k1)$adopt, deg=degree(k1), close=closeness(k1), btwn=betweenness(k1, normalized=T), 
+                    eig=eigen_centrality(k1)$vector)
+
+k2.df <- data.frame(adopt=V(k2)$adopt, deg=degree(k2), close=closeness(k2), btwn=betweenness(k2, normalized=T), 
+                    eig=eigen_centrality(k2)$vector)
+
+
+```
+
+Let's use betweenness centralization to compare across the entire graphs. This offers a glimpse of centralization tendencies for the whole thing as opposed to nodal characteristics. I picked this measure because it is a medial one and therefore speaks to diffusion. You can choose another measure, but be sure to have an explanation for your choice.
+
+```{r, message=FALSE}
+
+centr_betw(k1)
+
+mean(adopt1)
+
+centr_betw(k2)
+
+mean(adopt2)
+
+
+```
+
+We can make a plot that compares how betweenness is distributed between the two villages.
+
+```{r, message=FALSE}
+ggplot(k1.df, aes(x=as.factor(adopt), y=btwn)) + 
+  geom_boxplot() +
+  labs(title="Village 1",
+        x ="Adopt Practice = 1", y = "Betweenness") +
+  theme_bw()
+
+ggplot(k2.df, aes(as.factor(adopt), btwn)) + 
+  geom_boxplot() +
+labs(title="Village 2",
+     x ="Adopt Practice = 1", y = "Betweenness") +
+theme_bw()
+```
+
+We can make this graph more appealing by paneling them.
+
+```{r, message=FALSE}
+
+#Let's combine the data frames and use facet() to "panelize" the figures
+
+k1.df$village <- "One"
+k2.df$village <- "Two"
+
+ktot.df <- rbind(k1.df, k2.df)
+
+ggplot(ktot.df, aes(x=as.factor(adopt), y=btwn)) + 
+  geom_boxplot() +
+  labs(title="Comparing Villages",
+       x ="Adopt Practice = 1", y = "Betweenness") +
+  theme_bw()+
+  facet_wrap(~ village)
+
+```
+
+
+We can also construct some formal tests.
+
+```{r, message=FALSE}
+
+t.test(btwn ~ adopt, data = ktot.df,
+       var.equal = TRUE, alternative = "less")
+
+```
+
+We could even construct a logistic regression predicting likelihood of adopting the new practice.
+
+```{r, message=FALSE}
+
+
+areg <- glm(adopt~btwn + as.factor(village), data=ktot.df, family="binomial")
+
+summary(areg)
+
+```
+
