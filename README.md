@@ -4,7 +4,7 @@ Welcome to the online home of Sociology 613 ([syllabus](https://github.com/light
 
 The class is taught by [Ryan Light](https://ryanlight.netlify.app/). 
 
-The course was greatly influenced by courses by and conversations with [jimi adams](https://jimiadams.github.io/) and [Jim Moody](https://people.duke.edu/~jmoody77/).
+The course was greatly influenced by courses by, code from, and conversations with [jimi adams](https://jimiadams.github.io/) and [Jim Moody](https://people.duke.edu/~jmoody77/).
 
 ## Weekly Slides, Workshop Notes, and Homework Sets
 
