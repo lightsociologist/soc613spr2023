@@ -39,7 +39,7 @@ Homework: [.pdf](https://github.com/lightsociologist/soc613spr2023/tree/main/hom
 
 Slides: [.html](https://raw.githack.com/lightsociologist/soc613spr2023/main/lectures/005_centrality/week5_centrality_slides.html) 
 
-Workshop: TBD
+Workshop: [.html](https://raw.githack.com/lightsociologist/soc613spr2023/main/lectures/005_centrality/week5_centrality_workshop.html)
 
 Homework: [.pdf](https://github.com/lightsociologist/soc613spr2023/tree/main/homework/005hw/w5_centrality.pdf)
 
