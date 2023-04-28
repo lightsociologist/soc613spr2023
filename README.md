@@ -61,7 +61,7 @@ Homework: TBD
 
 ### 008 Diffusion and Preliminary Statistics
 
-Workshop: [.html](https://raw.githack.com/lightsociologist/soc613spr2023/main/lectures/008_prelim_stat/w8_intro_to_network_stats_workshop.html) 
+Workshop: [.html](https://raw.githack.com/lightsociologist/soc613spr2023/main/lectures/008_prelim_stats/w8_intro_to_network_stats_workshop.html) 
 
 Homework: [.pdf](https://github.com/lightsociologist/soc613spr2023/tree/main/homework/008hw/w8_intro_stats.pdf)
 
