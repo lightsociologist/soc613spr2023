@@ -9,8 +9,6 @@ output:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## Introduction to Centrality
-
 Background:  At the individual level, one dimension of position in the network can be captured through centrality.
 
 Conceptually, centrality is fairly straight forward: we want to identify which nodes are in the ‘center’ of the network.  In practice, identifying exactly what we mean by ‘center’ is somewhat complicated.
@@ -19,16 +17,43 @@ Node Leve Measures: Degree, Closeness, Betweenness, Power
 
 Graph Level measures: Centralization
 
+## Working with Centrality
+
+Borgatti (2003; 2005) discusses centrality in terms of two key dimensions:  
+
+Substantively, the key question for centrality is knowing what is flowing through the network.  The key features are:
+
+Radial: Whether the actor retains the good to pass to others (Information, Diseases). Nodes are the endpoint.
+Medial: Whether they pass the good and then lose it (physical objects) - Nodes are itermediaries. 
+Distance: Whether the ket factor is distance - typically paths separating nodes.
+Frequency: Whether the key factor is the number of alters one encounters (information)
+
+The off-the-shelf measures do not always match the social process of interest, so researchers need to be mindful of this and the future of centrality may include induced measures that are more theoretically precise.
+
+![](images/borgatti_centrality.jpg)
+
+For the purposes of this workshop, we will need several packages starting with **igraph** for most of the network analysis, **ggplot2** for some graphs, **dplyr** for data wrangling, **Hmisc** for analysis, **CINNA** just to show the centrality options available, **intergraph** to move from **igraph** to **sna** and **sna** for looking at brokerage. We use `import::from` and select only the `brokerage` function from **sna** to avoid confusing dependencies.
+
+
+```{r results='hide', echo=TRUE, message=FALSE}
+library(igraph)
+library(ggplot2)
+library(dplyr)
+library(Hmisc)
+library(CINNA)
+library(intergraph)
+import::from(sna, brokerage=brokerage)
+```
+
 ## Digging into Groups: Florentine Marriage Network
 
 Let's get a quick look at our exemplar data set: 
 
 The Florentine Marriage Network. Here, the nodes are families and the edges are marital ties. Florence around 1430 was experiencing rapid economic and political transformation and we see two points of struggle between the Medicis and the Strozzis.
 
-We have this stored as a pajek file and can load it in the usual way.
+We have this stored as a pajek file and can load it in the usual way into **igraph**.
 
 ```{r message=FALSE}
-library(igraph)
 
 flomarriage <- as.undirected(read.graph("data/flomarriage.net", format="pajek"))
 
@@ -44,11 +69,11 @@ plot.igraph(flomarriage, vertex.color=as.factor(V(flomarriage)$party))
 ```
 
 
-## Basic measure of "importance:" Degree
+## Degree Centrality: Basic Measure of "Importance"
 
 If we want a method that allows us to distinguish “important” actors, intuitively we may rely on popularity: The actor with the most ties is the most important: So our old friend degree is back!
 
-Recall degree is the number of edges incident to a node.
+Recall degree is the number of edges incident to a node - in an undirected graph this is the number of alters that you have. In **igraph** we use the `degree` function.
 
 
 ```{r  message=FALSE, echo=TRUE}
@@ -65,26 +90,26 @@ plot.igraph(flomarriage, vertex.size=degree_centrality*5,
 ```
 
 
-## Degree as a graph property
+## Degree Centralization: A Graph Property
 
-We can also construct degree as a graph property:
+We can also construct degree as a graph property capturing the extent to which the graph is controlled by a single node: `centralization.degree` in **igraph**.
 
 
 ```{r  message=FALSE, echo=TRUE}
 
 centralization.degree(flomarriage, normalized=T)
 
-#print(cd$centralization)
-#print(vcd$centralization)
 ```
 
-Where $res are the degree scores, centralization is the graph level index, and the max is the denominator in the normalization. 
+Here `$res` are the degree scores for each node, `centralization` is the graph level index, and the `max` is the theoretical maximum for the unnormalized graph if everyone was connected to everyone else and is the denominator in the normalization indicated by `normalized=T`. 
 
 ## Closeness Centrality
 
-A second measure of centrality is closeness centrality.  An actor is considered important if he/she is relatively close to all other actors.
+A second measure of centrality is closeness centrality.  An actor is considered important if they are relatively close to all other actors.
 
-Closeness is based on the inverse of the geodesic path - or shortest distance - of each actor to every other actor in the network. This is typically normalized.
+Closeness (`closeness` in **igraph**) is based on the inverse of the geodesic path - or shortest distance - of each actor to every other actor in the network. This is typically normalized. 
+
+We can also calculate centralization for closeness: `centralization.closeness` in **igraph**.
 
 ```{r  message=FALSE, echo=TRUE}
 
@@ -104,9 +129,9 @@ plot.igraph(flomarriage, vertex.size=close_centrality*50,
 
 ```
 
-## Betweenness Centrality
+## Betweenness Centrality: Path Control
 
-Borgatti and Everett (2020) call degree and closeness radial measures of centrality because they focus upon each node as an endpoint. Some questions ask us to consider the potential for nodes to mediate the flow of bits (e.g. information, disease, etc.). Betweenness centrality is a medial measure as it asks which nodes sit between other nodes. The score is the number of geodesics that a node sits on in a graph. 
+Borgatti and Everett (2020) call degree and closeness radial measures of centrality because they focus upon each node as an endpoint. Some questions ask us to consider the potential for nodes to mediate the flow of bits (e.g. information, disease, etc.). Betweenness centrality `betweenness` in **igraph** is a medial measure as it asks which nodes sit between other nodes. The score is the number of geodesics that a node sits on in a graph. This measure is frequently used to capture "structural holeness" of nodes. 
 
 
 ```{r message=FALSE, echo=TRUE}
@@ -122,13 +147,13 @@ plot.igraph(flomarriage, vertex.size=between_centrality/2,
 
 ```
 
-## Power and Influence Centrality
+## Power and Influence Centrality: Who Do You Know
 
 We may also conceive of power as a measure of proximity. The powerful are connected to other powerful people. There are a series of "beta" centrality scores that weigh the power of proximate nodes: 1-step nodes power is weighed more heavily than 2-step nodes and so on.
 
-* Bonacich Power Centrality:  Actor’s centrality (prestige) is equal to a function of the prestige of those they are connected to.  Thus, actors who are tied to very central actors should have higher prestige/ centrality than those who are not. 
+* Bonacich Power Centrality `power_centrality` in **igraph** captures how an actor’s centrality (prestige) is equal to a function of the prestige of those they are connected to.  Thus, actors who are tied to very central actors should have higher prestige/ centrality than those who are not. 
 
-* Eigenvector centrality is often conceptualized as a capturing infleunce. Eigenvector centrality is a relative measure where connections to high-scoring nodes are more highly weighted. PageRank is a version of eigenvector centrality.
+* Eigenvector centrality `eigen_centrality` in **igraph** is often conceptualized as a capturing influence. Eigenvector centrality is a relative measure where connections to high-scoring nodes are more highly weighted. PageRank is a version of eigenvector centrality.
 
 
 ```{r message=FALSE, echo=TRUE}
@@ -153,7 +178,9 @@ plot.igraph(flomarriage, vertex.size=eig_centrality$vector*10,
 
 ## Quick addition: K-Core Decomposition
 
-This can be an interesting way to think about kind of subgraph groupiness as a type of centrality. The k-core is the maximal subgraph where each vertex has at least k degrees. This is useful for very large graphs like Gonzales-Bailon et al. (2011). 
+This can be an interesting way to think about kind of subgraph groupiness as a type of centrality. The k-core is the maximal subgraph where each vertex has at least k degrees. This is useful for very large graphs like Gonzales-Bailon et al. (2011).
+
+`coreness` in **igraph** decomposes cores.
 
 ```{r, echo=T}
 
@@ -163,21 +190,6 @@ median(coreness(flomarriage))
 
 ```
 
-## Working with Centrality
-
-In recent work, Borgatti (2003; 2005) discusses centrality in terms of two key dimensions:  
-
-Substantively, the key question for centrality is knowing what is flowing through the network.  The key features are:
-Radial: Whether the actor retains the good to pass to others (Information, Diseases) or  medial: whether they pass the good and then lose it (physical objects) 
-
-Whether the key factor for spread is distance (disease with low pij) or multiple sources (information)
-
-The off-the-shelf measures do not always match the social process of interest, so researchers need to be mindful of this.
-
-
-## Working with Centrality
-
-![](borgatti_centrality.jpg)
 ## Let's look at the relationship between scores
 
 First we can look at some bivariate relationships. 
@@ -189,24 +201,20 @@ ecent <- eig_centrality$vector
 flo.df <- data.frame(V(flomarriage)$name, V(flomarriage)$party, V(flomarriage)$wealth, 
                      degree(flomarriage), closeness(flomarriage), betweenness(flomarriage),   eig_centrality$vector)
 
-library(dplyr)
-
 flo.df <- rename(flo.df, c(family = 1, party=2, wealth=3, degree=4, close=5, between=6, eig=7))
 
 flo.df <- flo.df %>% mutate(medici=recode(party, 'Medici'='1', "Split"='0', 'Oligarch'='0'))
-
-library("Hmisc")
 
 nflo.df <- flo.df[,3:8]
 
 cmat <- rcorr(as.matrix(nflo.df))
 
-cmat
+corrplot::corrplot(cmat$r)
 
 ```
 
 
-We can also evaluate the relationship between wealth and centrality using OLS regression.
+We can also evaluate the relationship between wealth and centrality using OLS regression using `lm` in base R.
 
 ```{r, echo=T}
 
@@ -218,7 +226,7 @@ summary(wlth.reg)
 
 We can graphically compare centrality scores to how constrained families are within the network.
 
-```{r}
+```{r, message=F}
 
 library(ggplot2)
 library(ggrepel)
@@ -255,9 +263,7 @@ ggplot(flo.df, aes(x=between, y=cons, label=family)) +
 
 ## Degree by Constraint
 
-```{r, echo=T}
-
-
+```{r, echo=T, message=F}
 
 ggplot(flo.df, aes(x=degree, y=cons, label=family)) + 
   geom_point() + geom_label_repel(aes(label=family, fill = factor(prty+4)),  max.overlaps=Inf)+
@@ -268,16 +274,13 @@ ggplot(flo.df, aes(x=degree, y=cons, label=family)) +
                        labels=c("Medici", "Oligarchs", "Split Loyalists"))+
                          theme_bw() 
    
-
-
-
 ```
 
 
 ## Wealth by Influence
 
 
-```{r, echo=T}
+```{r, echo=T, message=F}
 
 ggplot(flo.df, aes(x=wealth, y=eig, label=family)) + 
   geom_point() + 
@@ -293,17 +296,39 @@ ggplot(flo.df, aes(x=wealth, y=eig, label=family)) +
 ```
 
 
-## Exploring the wide world of centrality!
+## Exploring Centrality Further
 
-Check out the CINNA package for an off-the-shelf centralities that you read about and want to explore. It has a lot of options!
+Check out the **CINNA** package for an off-the-shelf centralities that you read about and want to explore. It has a lot of options!
 
-```{r, echo=T}
-
-library(CINNA)
+```{r, echo=F, message=F}
 
 proper_centralities(flomarriage)
 
+```
+
+## Brokerage: Gould and Fernandez (1989)
+
+Gould and Fernandez recognize - kind of following Borgatti and Brass's (2019) claim that nodes matter for structure and not just structure for nodes - that nodes are playing different local roles especially as it pertains to mediation across groups. Their theoretical ideas about brokerage have had lasting influence, while their actual measurement strategies have maybe received less attention than deserved. The sna package has a function to calculate the brokerage roles that Gould and Fernandez identify. 
+
+First, we need to bring port the network from an igraph object to an sna object and we can use the `asNetwork` function in **intergraph** for that switch.
+
+```{r, echo=T}
+
+flonet <- asNetwork(flomarriage)
 
 ```
-#library(knitr)
-#purl("week5_centrality_workshop.Rmd")
+Now we can use the `brokerage` function in **sna** to calculate the distribution of each brokerage. We need the network and the grouping attribute of interest (recall that Gould and Fernandez are explicitly interested in how nodes mediate across groups).
+
+The matrix of observed brokerage scores is stored as `$raw.nli` and the aggregated observed scores is stored as `raw.gli`.
+
+```{r, echo=T}
+
+flobroker <- brokerage(flonet, party)
+
+knitr::kable(flobroker$raw.nli, caption="Node-Level Brokerage Table")
+
+knitr::kable(flobroker$raw.gli, caption="Aggregate Brokerage Table")
+
+```
+
+
