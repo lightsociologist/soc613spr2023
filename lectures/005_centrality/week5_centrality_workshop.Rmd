@@ -43,6 +43,8 @@ library(Hmisc)
 library(CINNA)
 library(intergraph)
 import::from(sna, brokerage=brokerage)
+library(boot)
+library(broom)
 ```
 
 ## Digging into Groups: Florentine Marriage Network
@@ -224,7 +226,9 @@ summary(wlth.reg)
 
 ```
 
-We can graphically compare centrality scores to how constrained families are within the network.
+Regressions of this type violate the independence assumption of standard regressions and, while somewhat commonly used, you may want to bootstrap standard errors. 
+
+Next, we can graphically compare centrality scores to how constrained families are within the network. First, we compare betweenness with constraint. Recall that constraint is Burt's measure of redundancy in an ego's network.
 
 ```{r, message=F}
 
