@@ -1,7 +1,10 @@
 ---
-title: 'Week 6: Introduction to Cohesion'
+title: 'Week 6: Cohesion and Community'
 output:
   html_document:
+    toc: yes
+    toc_depth: 5
+    toc_float: yes
     df_print: paged
 ---
 
@@ -15,13 +18,25 @@ One of the fundamental goals of social network analysis is to locate groups of n
 
 The most basic way to think about this is density, which of course is at the node level.
 
-## Digging into Groups: Zachary's Karate Club Dataset
+First, we need to load the packages for this workshop. **sna** and **network** will be used for blockmodeling. We load them first as they share functions with **igraph** and we want to priortize **igraph**, which we load next. We load **RColorBrewer** so that we can prettify the **igraph** networks and **intergraph** for switching between **igraph** and **network** objects.
 
-Let's get a quick look at our exemplar data sets. First, Zachary's Karate Club: Nodes are club members and edges are interactions. The network occurs just prior to a split between the Teacher (node 1) and the club president (node 34). This is the most common exemplar network.
+```{r results='hide', echo=TRUE, message=FALSE}
+
+library(sna)
+library(network)
+library(igraph)
+library(RColorBrewer)
+library(intergraph)
+```
+
+## Finding Groups: Zachary's Karate Club
+
+Let's get a quick look at our network for this week: Zachary's Karate Club. The nodes are members of a karate club and edges are interactions. The network occurs just prior to a split between the Teacher (node 1) and the club president (node 34). This is the most common exemplar network. Its popularity inspired me to include the network as the image of the *Oxford Handbook*.
+
+I have stored the network as an R object that we can simply ``load``.
 
 ```{r message=FALSE}
 
-library(igraph)
 load("data/karate.rda")
 
 plot.igraph(karate)
@@ -33,17 +48,23 @@ df.dens <- data.frame(V(karate)$id, kdens)
 
 ```
 
-## Defining Groups: Components, Cliques and Cores
+## Defining Groups
 
-Several approaches to groups: components, bicomponents, cliques, and cores.
+Let's start with several basic approaches to locating groups: components, bicomponents, cliques, and cores.
+
+These are basic because there are not estimated by a community detection algorithm, but are more simply defined by node and path characteristics.
+
+## Components
 
 - Component: Maximally connected subgraph
     - Strong: Directed/ Weak: Undirected
 
 - Bicomponent: Maximally connected subgraph with at least two paths between each node.
 
-components(g) & biconnected.components(g)
+We can use ``components(g)`` & ``biconnected.components(g)`` in **igraph**.
 
+
+First we calculate components.
 
 ```{r, echo=TRUE}
 
@@ -55,7 +76,7 @@ print(comps$csize)
 
 ```
 
-## Defining Groups: Bicomponents
+Next, we can calculate bicomponents and plot the bicomponent.
 
 ```{r echo=TRUE}
 
@@ -72,22 +93,42 @@ plot.igraph(g2)
 
 ```
 
+This is a densely connected graph, so it doesn't change to much. Note that the leaf node, 12, is removed.
 
-## Defining Groups: Cores
+## Cores
 
 - k-Cores: A subgraph where each node is connected to at least k nodes. Some scholars also think of coreness as a kind of centrality in very large networks.
 
-coreness(g)
+``coreness(g)`` in **igraph** cacluates cores.
 
 ``` {r, echo=TRUE}
-kcore <- coreness(karate)    # Find the cores
-V(karate)$core <- kcore      # Add the cores as a vertex attribute
 
-library(RColorBrewer)
-coul = brewer.pal(4, "Set1") 
+kcore <- coreness(karate)    
+
+```
+
+We can store the core for each node as a vertex or nodal attribute called "core" or whatever using the usual format ``V(g)$core <- kcore`` where kcore is the output for ``coreness(g)``.
+
+We can assign a color to each core in several ways. An effective solution is to use ``brewer.pal`` from **RColorBrewer** to index the core groups as factors and storing them as a vector in these steps:
+
+Grab four colors as there are four core groups.
+
+``thing <- brewer.pal(4, "Set1")`` 
+
+Index to the four as stored as a vertex attribute in the graph. We need this to be a ``as.factor``.
+
+``my_color <- thing[as.numeric(as.factor(V(g)$core))]``
+
+Then we plot the network in **igraph** using ``vertex.color=my_color``. Note there is also a legend example included here.
+
+``` {r, echo=TRUE}
+
+
+V(karate)$core <- kcore      
+
+coul <- brewer.pal(4, "Set1") 
  
-# Create a vector of color
-my_color=coul[as.numeric(as.factor(V(karate)$core))]
+my_color <- coul[as.numeric(as.factor(V(karate)$core))]
 
 plot.igraph(karate, vertex.color=my_color)
 legend("bottomleft", legend=levels(as.factor(V(karate)$core)) , 
@@ -97,10 +138,13 @@ horiz = FALSE, inset = c(0.1, 0.1))
 ```
 
 
-## Defining Groups: Cliques
-- Clique: A maximally connected subgraph of at least three nodes
+## Cliques
 
-cliques(g)| max_cliques(g) | largest_cliques(g)
+A clique is a maximally connected subgraph (e.g., every node is connected to one another) of at least three nodes 
+
+In **igraph**:
+
+``cliques(g)`` | ``max_cliques(g)`` | ``largest_cliques(g)``
 
 ```{r echo=TRUE}
 
@@ -115,19 +159,17 @@ plot(clique2)
 ```
 
 
-## Cohesion
+## Cohesion and Cut-Points
 
-k-components: subgraph connectivity is defined by: 
+K-components are defined by: 
     - (a) the number of nodes that must be removed from the graph to disconnect the components.
     - (b) the number of ties that must be removed from the graph to disconnect the components.
 
-Mathematically, a & b are equivalent
+Mathematically, a & b are equivalent.
 
-Cut-points/articulation points are nodes whose removal results in the graph splitting apart.
+To locate k-components we first identify cut-points/articulation points. These are nodes whose removal results in the graph splitting apart. These can also be seen as "important" nodes.
 
-articulation.points(g)
-
-## Multiple Connectivity
+``articulation.points(g)`` in **igraph** identify cut points.
 
 
 ```{r echo=TRUE}
@@ -148,26 +190,31 @@ plot(rem2)
 
 ## Modularity Maximization
 
-General notion of the “groupiness” within a complete network: 
+Modularity maximization is a poular way of thinking about “groupiness” within a complete network.
+Maximization is:
     - generally thought of as describing a tendency towards having more in-group than out-group ties
-    - in-/out- groups are NOT defined on node characteristics 
-(ala homophily), but on tie-patterns
-    - typically estimated through divisive/agglomerative assignment
+    - in-/out- groups are NOT defined on node characteristics (ala homophily), but on tie-patterns
+    - typically estimated through divisive/agglomerative assignment or looking at the consequences        of iteratively removing nodes.
 
-## Newman-Girvan (fast-greedy) 
+Newman-Girvan and Louvain community detection both use modularity maximization.
+
+### Newman-Girvan (fast-greedy) 
 
 Newman-Girvan is a divisive approach:
-- Find edge with highest betweenness & remove
-- Calculate community groups & fitness
-- Iterate over 1-2 (as many as N times)
+
+  - Find edge with highest betweenness & remove
+  - Calculate community groups & fitness
+  - Iterate over 1-2 (as many as N times)
+
 How to define “fitness”?
-- Community-based mixing matrix (proportion of edges w/in & across groups) 
-- Compute matrix “trace” (the sum of the main diagonal)
-    - High values indicate well identified partitions
-- Identify cross-group links (via row/col sums)
-- Modularity = sum of difference between diagonal & off diagonal elements
-    - High values indicate a more partitioned / segmented (modular) network
-    - Typically examined for local maximization
+
+  - Community-based mixing matrix (proportion of edges w/in & across groups) 
+  - Compute matrix “trace” (the sum of the main diagonal)
+  - High values indicate well identified partitions
+  - Identify cross-group links (via row/col sums)
+  - Modularity = sum of difference between diagonal & off diagonal elements
+  - High values indicate a more partitioned / segmented (modular) network
+  - Typically examined for local maximization
 
 ```{r, echo=TRUE}
 fg_comms <- cluster_fast_greedy(karate)
@@ -177,13 +224,15 @@ V(karate)$fg_comms <- fg_comms$membership
 plot.igraph(karate, vertex.color=V(karate)$fg_comms)
 
 ```
-## Louvain (modularity optimization)
 
-Louvain (Blondel et al. 2008) is a modularity optimization approach: 
--Optimize modularity on all nodes then iterate
+### Louvain 
+
+Louvain (Blondel et al. 2008) is a modularity optimization approach:
+
+  -Optimize modularity on all nodes then iterate
   - Does switching the node to another group increase modularity?
-- stop at solution that produces the largest increase in modularity
-- This has been optimized in the Leiden approach (see Leiden pacakge).
+  - stop at solution that produces the largest increase in modularity
+  - This has been optimized in the Leiden approach (see Leiden pacakge).
 
 ```{r, echo=TRUE}
 
@@ -195,7 +244,35 @@ plot.igraph(karate, vertex.color=V(karate)$lv_comms)
 
 ```
 
-## Walktrap (Random Walks)
+### Leiden
+
+The Leiden algorithm is a variation on Louvain that allows you to adjust a refinement parameter or to generate bigger or smaller groups.
+
+``cluster_leiden(g, resolution_parameter=#)`` in **igraph** with 1 as the default resolution parameter estimates this solution. A higher resolution locates smaller communities, while a lower resolution locates larger groups.
+
+Here we explore a large and a small resolution.
+
+```{r, echo=TRUE}
+
+leid_large_comms <- cluster_leiden(karate, resolution_parameter = 3)
+
+V(karate)$leid_large_comms <- leid_large_comms$membership
+
+plot.igraph(karate, vertex.color=V(karate)$leid_large_comms)
+
+
+leid_small_comms <- cluster_leiden(karate, resolution_parameter = .25)
+
+V(karate)$leid_small_comms <- leid_small_comms$membership
+
+plot.igraph(karate, vertex.color=V(karate)$leid_small_comms)
+
+
+```
+
+You can see that the higher resolution is starting to parse smaller bits of the network, here, individual nodes. A very high resolution will basically just put every node into its own community. 
+
+## Random Walks: Walktrap
 
 Walktrap community detection locates subgraphs via random walks. Nodes that are connected via short random walks will be clustered together.
 
@@ -203,7 +280,10 @@ A random walk is exactly as it sounds: Imagine traversing nodes randomly along a
 
 Infomap community detection also uses random walks.
 
+``cluster_walktrap(g)`` in **igraph** detects communities useing walktrap community detection.
+
 ```{r, echo=TRUE}
+
 wt_comms <- cluster_walktrap(karate)
 
 V(karate)$wt_comms <- wt_comms$membership
@@ -211,75 +291,72 @@ V(karate)$wt_comms <- wt_comms$membership
 plot.igraph(karate, vertex.color=V(karate)$wt_comms)
 
 ```
+
 ## Blockmodels
 
 Most common blockmodels are relaxed forms of structural equivalence and allow us to ask which nodes are in similar positions. This has implications for hierachies and for the distributions of resources, such as information.
 
 The hierarchical aspect has been particularly useful in understanding organziations and the world system.
 
-Igraph doesn't implement blockmodels. So we will use sna package instead.
+**igraph** doesn't implement blockmodels. So we will use **sna** package instead.
 
-To begin we load the required packages and the data:
+First, we use ``asNetwork(g)`` from **intergraph** to switch from **igraph** to **sna**.
 
 ```{r, echo=T, message=F}
-library(network)
-library(sna)
-library(intergraph)
 
 knet <- asNetwork(karate)
+
 ```
 
 Blockmodeling involves two major steps. 
 
 1. "A partition of actors in the network into discrete subsets called positions."
-2. "For exach pair of positions a statement of presence or absence of a tie or between positions on each of the relations." (Wasserman and Faust)
+2. "For each pair of positions a statement of presence or absence of a tie or between positions on each of the relations." (Wasserman and Faust)
 
-After plotting the network in sna, we can use equiv.clust(g) to locate clusters. equiv.clust "computes the distances between all pairs of positions".
+After plotting the network in **sna** using the ``plot.network`` function, we can use ``equiv.clust(g)`` to locate clusters. ``equiv.clust`` "computes the distances between all pairs of positions" and ``plot`` the solution which is a dendogram. We can inspect logical places to slice the solution.
 
 ```{r, echo=T}
-plot.network(knet, label=get.vertex.attribute(knet, "id"))	
 
-kclus <- equiv.clust(knet, mode="digraph")
+network::plot.network(knet)	
+
+kclus <- sna::equiv.clust(knet, mode="digraph")
 
 plot(kclus)
+
 ```
 
 
-After inspecting the dendogram, we can construct our blockmodel with
+After inspecting the dendogram, we can construct our blockmodel with a 4 block solution given the break around height=25.
 
-blockmodel(g, k=[# of Blocks])
+``blockmodel(g, k=[# of Blocks])`` in **sna** constructs blockmodels.
 
 ```{r, echo=T}
-kbm <- blockmodel(knet, kclus, k=4)		#looking at it made the 2-solution clear
+
+kbm <- sna::blockmodel(knet, kclus, k=4)		
+
 kbm
-plot.blockmodel(kbm)	# take a look
+
+sna::plot.blockmodel(kbm)	
 
 kbm.mem <- kbm$block.membership
 
 ```
 
-
-
-
-
 ## Compare Modularity
 
-modularity(x, membership, weights = NULL, ...)
+How do we evaluate solutions in terms of community detection. While some of the algorithms intentionally maximize modularity, they may not be the most maximizing. We can compare modularity across solutions using ``modularity(g, membership, weights = NULL, ...)`` in **igraph**.
 
 ```{r, echo=TRUE}
 
-modularity(karate, lv_comms$membership)
+mod.df <- data.frame(louvain=modularity(karate, lv_comms$membership), fast_greedy=modularity(karate, fg_comms$membership), leiden_large=modularity(karate, leid_large_comms$membership), leiden_small=modularity(karate, leid_small_comms$membership), walktrap=modularity(karate, wt_comms$membership), blocks=modularity(karate, kbm.mem))
 
-modularity(karate, fg_comms$membership)
-
-modularity(karate, wt_comms$membership)
-
-modularity(karate, kbm.mem)
-
+knitr::kable(mod.df)
 
 ```
 
 ## Example: Legislative Networks
+
+Next, we can include a couple of examples that put community detection to good use. There are, of course, many examples at this point.
 
 ![](images/moody_mucha_graph.jpg)
 
@@ -305,10 +382,3 @@ modularity(karate, kbm.mem)
 ![](images/adams_light.jpg)
 
 
-```{r, echo=F}
-
-
-#library(knitr)
-#purl("week6_cohesion_workshop.Rmd")
-
-```

@@ -2,6 +2,9 @@
 title: 'Week 5: Introduction to Centrality'
 output:
   html_document:
+    toc: yes
+    toc_depth: 5
+    toc_float: yes
     df_print: paged
 ---
 
@@ -32,7 +35,7 @@ The off-the-shelf measures do not always match the social process of interest, s
 
 ![](images/borgatti_centrality.jpg)
 
-For the purposes of this workshop, we will need several packages starting with **igraph** for most of the network analysis, **ggplot2** for some graphs, **dplyr** for data wrangling, **Hmisc** for analysis, **CINNA** just to show the centrality options available, **intergraph** to move from **igraph** to **sna** and **sna** for looking at brokerage. We use `import::from` and select only the `brokerage` function from **sna** to avoid confusing dependencies.
+For the purposes of this workshop, we will need several packages starting with **igraph** for most of the network analysis, **ggplot2** for some graphs, **dplyr** for data wrangling, **Hmisc** for constructing a correlation matrix, **CINNA** just to show the centrality options available, **intergraph** to move from **igraph** to **sna** and **sna** for looking at brokerage. We use `import::from` and select only the `brokerage` function from **sna** to avoid confusing dependencies.
 
 
 ```{r results='hide', echo=TRUE, message=FALSE}
@@ -43,8 +46,6 @@ library(Hmisc)
 library(CINNA)
 library(intergraph)
 import::from(sna, brokerage=brokerage)
-library(boot)
-library(broom)
 ```
 
 ## Digging into Groups: Florentine Marriage Network
@@ -105,7 +106,7 @@ centralization.degree(flomarriage, normalized=T)
 
 Here `$res` are the degree scores for each node, `centralization` is the graph level index, and the `max` is the theoretical maximum for the unnormalized graph if everyone was connected to everyone else and is the denominator in the normalization indicated by `normalized=T`. 
 
-## Closeness Centrality
+## Closeness Centrality: Inverse Distance
 
 A second measure of centrality is closeness centrality.  An actor is considered important if they are relatively close to all other actors.
 
@@ -211,7 +212,7 @@ nflo.df <- flo.df[,3:8]
 
 cmat <- rcorr(as.matrix(nflo.df))
 
-corrplot::corrplot(cmat$r)
+corrplot::corrplot.mixed(cmat$r, order = 'AOE')
 
 ```
 
@@ -226,7 +227,9 @@ summary(wlth.reg)
 
 ```
 
-Regressions of this type violate the independence assumption of standard regressions and, while somewhat commonly used, you may want to bootstrap standard errors. 
+Regressions of this type violate the independence assumption of standard regressions and, while somewhat commonly used, you may want to bootstrap standard errors. You can use the **boot** package for this among a few other strategies. 
+
+## Centrality Plots
 
 Next, we can graphically compare centrality scores to how constrained families are within the network. First, we compare betweenness with constraint. Recall that constraint is Burt's measure of redundancy in an ego's network.
 
@@ -235,24 +238,11 @@ Next, we can graphically compare centrality scores to how constrained families a
 library(ggplot2)
 library(ggrepel)
 
-constraint <- constraint(flomarriage) 
-
-prty <- as.numeric(as.factor(V(flomarriage)$party))
-
-between_centrality <- betweenness(flomarriage)
-
-degree <- degree(flomarriage)
-
-
-
-becon <- data.frame(between=between_centrality, cons=constraint, name=V(flomarriage)$name, party=prty, degree=degree)
-
-
 flo.df$cons <- constraint(flomarriage)
 
 flo.df$prty <- as.numeric(as.factor(flo.df$party))
 
-ggplot(flo.df, aes(x=between, y=cons, label=family)) + 
+ggplot(flo.df, aes(x=cons, y=between, label=family)) + 
   geom_point() + geom_label_repel(aes(label=family, fill = factor(prty+4)),  max.overlaps=Inf)+
   geom_smooth(method='lm') +
     scale_fill_manual(values=c("tomato", "darkgoldenrod", "deepskyblue"), 
@@ -269,7 +259,7 @@ ggplot(flo.df, aes(x=between, y=cons, label=family)) +
 
 ```{r, echo=T, message=F}
 
-ggplot(flo.df, aes(x=degree, y=cons, label=family)) + 
+ggplot(flo.df, aes(x=cons, y=degree, label=family)) + 
   geom_point() + geom_label_repel(aes(label=family, fill = factor(prty+4)),  max.overlaps=Inf)+
   geom_smooth(method='lm') +
   scale_fill_manual(values=c("tomato", "darkgoldenrod", "deepskyblue"), 
@@ -304,12 +294,6 @@ ggplot(flo.df, aes(x=wealth, y=eig, label=family)) +
 
 Check out the **CINNA** package for an off-the-shelf centralities that you read about and want to explore. It has a lot of options!
 
-```{r, echo=F, message=F}
-
-proper_centralities(flomarriage)
-
-```
-
 ## Brokerage: Gould and Fernandez (1989)
 
 Gould and Fernandez recognize - kind of following Borgatti and Brass's (2019) claim that nodes matter for structure and not just structure for nodes - that nodes are playing different local roles especially as it pertains to mediation across groups. Their theoretical ideas about brokerage have had lasting influence, while their actual measurement strategies have maybe received less attention than deserved. The sna package has a function to calculate the brokerage roles that Gould and Fernandez identify. 
@@ -334,5 +318,5 @@ knitr::kable(flobroker$raw.nli, caption="Node-Level Brokerage Table")
 knitr::kable(flobroker$raw.gli, caption="Aggregate Brokerage Table")
 
 ```
-
+What do the brokerage strategies of the Florentine families suggest about how power is distributed in this network?
 
