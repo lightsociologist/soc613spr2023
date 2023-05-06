@@ -47,7 +47,7 @@ Homework: [.pdf](https://github.com/lightsociologist/soc613spr2023/tree/main/hom
 
 Slides: [.html](https://raw.githack.com/lightsociologist/soc613spr2023/main/lectures/006_cohesion/week6_slides.html) 
 
-Workshop: [.html](https://raw.githack.com/lightsociologist/soc613spr2023/main/lectures/006_cohesion/week6_cohesion_workshop.html) 
+Workshop: [.html](https://raw.githack.com/lightsociologist/soc613spr2023/main/lectures/006_cohesion/week6_cohesion_workshop.html) | [.rmd](https://github.com/lightsociologist/soc613spr2023/tree/main/lectures/006_cohesion/week6_cohesion_workshop.Rmd)
 
 Homework: [.pdf](https://github.com/lightsociologist/soc613spr2023/tree/main/homework/006hw/w6_community.pdf)
 
