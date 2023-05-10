@@ -31,7 +31,7 @@ library(intergraph)
 
 ## Finding Groups: Zachary's Karate Club
 
-Let's get a quick look at our network for this week: Zachary's Karate Club. The nodes are members of a karate club and edges are interactions. The network occurs just prior to a split between the Teacher (node 1) and the club president (node 34). This is the most common exemplar network. Its popularity inspired me to include the network as the image of the *Oxford Handbook*.
+Let's get a quick look at our network for this week: Zachary's Karate Club. The nodes are members of a karate club and edges are interactions. The network occurs just prior to a split between the Teacher (node 1) and the club president (node 34). This is the most common exemplar network. Its popularity inspired me to include the network as the front image of the *Oxford Handbook of Social Networks*.
 
 I have stored the network as an R object that we can simply ``load``.
 
@@ -39,7 +39,9 @@ I have stored the network as an R object that we can simply ``load``.
 
 load("data/karate.rda")
 
-plot.igraph(karate)
+layout.kk <- layout_with_kk(karate)
+
+plot.igraph(karate, layout=layout.kk)
 
 kdens <- make_ego_graph(karate, 1) %>%
 vapply(graph.density, numeric(1))
@@ -56,10 +58,9 @@ These are basic because there are not estimated by a community detection algorit
 
 ## Components
 
-- Component: Maximally connected subgraph
-    - Strong: Directed/ Weak: Undirected
+A component is a maximally connected subgraph where every node can be reached. Components could be isolates, dyads, triads, are larger structures, but they are otherwise disconnected from other parts of the network. Strong components are directed and weak components are undirected. The giant connected component is the largest maximally connected subgraph.
 
-- Bicomponent: Maximally connected subgraph with at least two paths between each node.
+A bicomponent is a maximally connected subgraph with at least two paths between each node. Every bicomponent will have at minimum a degree of 2.
 
 We can use ``components(g)`` & ``biconnected.components(g)`` in **igraph**.
 
@@ -95,11 +96,32 @@ plot.igraph(g2)
 
 This is a densely connected graph, so it doesn't change to much. Note that the leaf node, 12, is removed.
 
+## Cliques
+
+We may want to know groups of actors that really hang close to one another. Cliques capture one way of thinking about this groupiness. A clique is a maximally connected subgraph (e.g., every node is connected to one another) of at least three nodes. These are essentially groups of closed triads, so they are dense connections. 
+
+In **igraph**:
+
+``cliques(g)`` | ``max_cliques(g)`` | ``largest_cliques(g)``
+
+```{r echo=TRUE}
+
+cliques <- largest_cliques(karate)
+
+c1 <- cliques[[1]]
+
+clique2 <- induced.subgraph(graph=karate,vids=c1)
+
+plot(clique2)
+
+```
+
+
 ## Cores
 
-- k-Cores: A subgraph where each node is connected to at least k nodes. Some scholars also think of coreness as a kind of centrality in very large networks.
+k-Cores are more relaxed way of thinking about groups. These are subgraphs where each node is maximally connected to at least k neighboring nodes. Some scholars also think of coreness as a proxy for centrality in very large networks.
 
-``coreness(g)`` in **igraph** cacluates cores.
+``coreness(g)`` in **igraph** cacluates cores. Each node is assigned a k for its largest k-core.
 
 ``` {r, echo=TRUE}
 
@@ -130,34 +152,12 @@ coul <- brewer.pal(4, "Set1")
  
 my_color <- coul[as.numeric(as.factor(V(karate)$core))]
 
-plot.igraph(karate, vertex.color=my_color)
+plot.igraph(karate, , layout=layout.kk, vertex.color=my_color)
 legend("bottomleft", legend=levels(as.factor(V(karate)$core)) , 
 col = coul , bty = "n", pch=20 , pt.cex = 3, cex = 1.5, 
 horiz = FALSE, inset = c(0.1, 0.1))
  
 ```
-
-
-## Cliques
-
-A clique is a maximally connected subgraph (e.g., every node is connected to one another) of at least three nodes 
-
-In **igraph**:
-
-``cliques(g)`` | ``max_cliques(g)`` | ``largest_cliques(g)``
-
-```{r echo=TRUE}
-
-cliques <- largest_cliques(karate)
-
-c1 <- cliques[[1]]
-
-clique2 <- induced.subgraph(graph=karate,vids=c1)
-
-plot(clique2)
-
-```
-
 
 ## Cohesion and Cut-Points
 
@@ -191,6 +191,7 @@ plot(rem2)
 ## Modularity Maximization
 
 Modularity maximization is a poular way of thinking about “groupiness” within a complete network.
+
 Maximization is:
     - generally thought of as describing a tendency towards having more in-group than out-group ties
     - in-/out- groups are NOT defined on node characteristics (ala homophily), but on tie-patterns
@@ -221,7 +222,7 @@ fg_comms <- cluster_fast_greedy(karate)
 
 V(karate)$fg_comms <- fg_comms$membership
 
-plot.igraph(karate, vertex.color=V(karate)$fg_comms)
+plot.igraph(karate, layout=layout.kk, vertex.color=V(karate)$fg_comms)
 
 ```
 
@@ -240,7 +241,7 @@ lv_comms <- cluster_louvain(karate)
 
 V(karate)$lv_comms <- lv_comms$membership
 
-plot.igraph(karate, vertex.color=V(karate)$lv_comms)
+plot.igraph(karate, layout=layout.kk, vertex.color=V(karate)$lv_comms)
 
 ```
 
@@ -258,14 +259,14 @@ leid_large_comms <- cluster_leiden(karate, resolution_parameter = 3)
 
 V(karate)$leid_large_comms <- leid_large_comms$membership
 
-plot.igraph(karate, vertex.color=V(karate)$leid_large_comms)
+plot.igraph(karate, layout=layout.kk, vertex.color=V(karate)$leid_large_comms)
 
 
 leid_small_comms <- cluster_leiden(karate, resolution_parameter = .25)
 
 V(karate)$leid_small_comms <- leid_small_comms$membership
 
-plot.igraph(karate, vertex.color=V(karate)$leid_small_comms)
+plot.igraph(karate, layout=layout.kk, vertex.color=V(karate)$leid_small_comms)
 
 
 ```
@@ -288,13 +289,15 @@ wt_comms <- cluster_walktrap(karate)
 
 V(karate)$wt_comms <- wt_comms$membership
 
-plot.igraph(karate, vertex.color=V(karate)$wt_comms)
+plot.igraph(karate, layout=layout.kk, vertex.color=V(karate)$wt_comms)
 
 ```
 
 ## Blockmodels
 
-Most common blockmodels are relaxed forms of structural equivalence and allow us to ask which nodes are in similar positions. This has implications for hierachies and for the distributions of resources, such as information.
+Another way of thinking about groups is to consider how actors or nodes are related based on the patterns of ties that they share. So, instead of being grouped by some type of proximity, groups are formed based on similarity. For example, we could use structural equivalence as a criteria for groupiness. Two nodes are in the same group if they have the exact same ties to one another, line cooks may have the exact same ties to chefs, managers, and other line cooks. Groups based on tie patterns are called blockmodels and this form of blockmodel based on structural equivalence is its most restrictive form. Obviously, these kinds of groups are pretty rare. 
+
+Most common blockmodels are relaxed forms of structural equivalence and allow us to ask which nodes are in similar positions. Blockmodels based on regular equivalence capture groups of nodes that share similar patterns of nodes, but not the exact same nodes such that a prep cook and a line cook could be in the same group if they are connected to similarly structured others (e.g., the same manager, different supervising chef, other prep or line cooks). This has implications for hierachies and for the distributions of resources, such as information.
 
 The hierarchical aspect has been particularly useful in understanding organziations and the world system.
 
@@ -339,6 +342,20 @@ kbm
 sna::plot.blockmodel(kbm)	
 
 kbm.mem <- kbm$block.membership
+
+```
+
+We can also plot the block in igraph.
+
+```{r, echo=T}
+
+blks <- data.frame(id=kbm$order.vector, block=kbm$block.membership)
+
+blks <- blks[order(blks$id),]
+
+V(karate)$blocks <- blks$block
+
+plot(karate, layout=layout.kk, vertex.color=V(karate)$blocks)
 
 ```
 
