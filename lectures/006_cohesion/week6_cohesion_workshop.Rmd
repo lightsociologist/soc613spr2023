@@ -39,14 +39,20 @@ I have stored the network as an R object that we can simply ``load``.
 
 load("data/karate.rda")
 
-layout.kk <- layout_with_kk(karate)
+```
 
-plot.igraph(karate, layout=layout.kk)
+As always we should examine the plot. I want to look at a few things when thinking about groups. For example, the density of the network might be a good initial look at group formation. We also leverage one way of thinking about groups - as ego networks - using the ``make_ego_graph(g)`` function that we set to one for first-order neighbors.
+
+Also note that we store the layout of the graph using the ``layout_with_kk(g)`` function in **igraph** so that each network throughout the workshop can have the same layout by using the ``layout=`` function when plotting networks.
+
+```{r message=FALSE}
+
+layout.kk <- layout_with_kk(karate)
 
 kdens <- make_ego_graph(karate, 1) %>%
 vapply(graph.density, numeric(1))
 
-df.dens <- data.frame(V(karate)$id, kdens)
+plot.igraph(karate, layout=layout.kk, vertex.size=kdens*10)
 
 ```
 
