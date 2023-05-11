@@ -35,7 +35,7 @@ Let's get a quick look at our network for this week: Zachary's Karate Club. The 
 
 I have stored the network as an R object that we can simply ``load``.
 
-```{r message=FALSE}
+```{r message=FALSE, echo=T}
 
 load("data/karate.rda")
 
@@ -45,7 +45,7 @@ As always we should examine the plot. I want to look at a few things when thinki
 
 Also note that we store the layout of the graph using the ``layout_with_kk(g)`` function in **igraph** so that each network throughout the workshop can have the same layout by using the ``layout=`` function when plotting networks.
 
-```{r message=FALSE}
+```{r message=FALSE, echo=T}
 
 layout.kk <- layout_with_kk(karate)
 
