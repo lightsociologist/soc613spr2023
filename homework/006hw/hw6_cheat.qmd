@@ -19,6 +19,9 @@ library(ggplot2)
 library(Hmisc)
 ```
 
+
+## 1. Introductory Inspection
+
 Next, we bring the data into **igraph**. We have an igraph object stored as a .rds file. The data consist of an advice seeking network within a consulting firm: (“Please indicate how often you have turned to this person for information or advice on work-related topics in the past three months”). 0: I Do Not Know This Person; 1: Never; 2: Seldom; 3: Sometimes; 4: Often; and 5:Very Often.) Not knowing and never seeking advice edges have been dropped. The **igraph** objects include two attributes - gender (1: male; 2: female), region (1: Europe; 2: USA). You can learn more about the data [here](https://toreopsahl.com/datasets/#Cross_Parker).
 
 ```{r, message=FALSE}
@@ -27,41 +30,55 @@ orgnet <- readRDS("data/orgnet.rds")
 
 summary(orgnet)
 
-plot(orgnet, vertex.color=V(orgnet)$region, edge.arrow.size=.1)
+layout.kk <- layout_with_kk(orgnet)
+
+plot(orgnet, layout=layout.kk, vertex.color=V(orgnet)$region, edge.arrow.size=.1)
 
 ```
+## 2. Components, Cliques, Cores, Cutpoints
+
+Let's start looking at some basic aspects of cohesion.
+
+### i.Bicomponents
+
+Here, we identify the largest bicomponet and then plot by region and gender.
 
 ```{r, message=FALSE}
 
 bicomponent.org <- biconnected.components(orgnet)
 
-b1 <- bicomponent.org$components[[1]]
+b1 <- bicomponent.org$components[[max(length(bicomponent.org$components))]]
 
 bi.g <- induced.subgraph(graph=orgnet,vids=b1)
 
-plot.igraph(bi.g, vertex.color=V(orgnet)$region)
+plot.igraph(bi.g, vertex.color=V(orgnet)$region, main="Consulting Network Bicomponent (Region)")
+
+plot.igraph(bi.g, vertex.color=V(orgnet)$gender, main="Consulting Network Bicomponent (Gender)")
 
 ```
 
-Let's graph the two networks with node color varying by adoption or not.
+### ii.Cliques
+
+Next we identify the largest cliques (note that there may be several cliques of this size).
 
 ```{r, message=FALSE}
 
 cliques <- largest_cliques(orgnet)
 
-c1 <- cliques[[1]]
+c1 <- cliques[[max(length(cliques))]]
 
 clique2 <- induced.subgraph(graph=orgnet,vids=c1)
 
-plot(clique2, vertex.color=V(orgnet)$region, edge.arrow.size=.1)
+plot(clique2, vertex.color=V(orgnet)$region, edge.arrow.size=.1, main="Consultancy Clique (Region)")
 
-
-plot(clique2, vertex.color=V(orgnet)$gender, edge.arrow.size=.1)
+plot(clique2, vertex.color=V(orgnet)$gender, edge.arrow.size=.1, main="Consultancy Clique (Gender)")
 
 
 ```
 
-Here 
+### iii.Cores
+
+We can use table to simply find a distribution of cores.
 
 ```{r, message=FALSE}
 
@@ -71,37 +88,82 @@ table(kcore)
 
 ```
 
-Here
+### iv.Cutpoints
 
 ```{r, message=FALSE}
+
+art_points <- articulation.points(orgnet)
+
+rem <- delete.vertices(orgnet, art_points)
+
+plot(rem)
+
+```
+
+## 3. Extracting Subgraph
+
+We didn't need to plot the graphs to answer the questions in part 2, but as I already did this, we can just repeat. 
+
+```{r, message=FALSE}
+
+plot(clique2, vertex.color=V(orgnet)$gender, edge.arrow.size=.1, main="Consultancy Clique (Gender)")
+
+```
+
+## 4. Communities
+
+Now we turn to some community detection techniques on the largest bicomponent.
+
+### a. Run Louvain, Walktrap, Leiden (high and low)
+
+Can't help but check really quickly, but next I will just make a data frame.
+
+```{r, message=FALSE}
+
+lv_comms <- cluster_louvain(bi.g)
+
+V(bi.g)$lv_comms <- lv_comms$membership
+
+layout.big <- layout_with_fr(bi.g)
+
+plot.igraph(bi.g, layout=layout.big, vertex.color=V(bi.g)$lv_comms)
+
+```
+
+OK. Let's just look construct modularity and store for now.
+
+```{r, message=FALSE}
+
+mod.df <- data.frame(louvain=
+modularity(bi.g, cluster_louvain(bi.g)$membership),
+walktrap=modularity(bi.g, cluster_walktrap(bi.g)$membership),
+leiden_large=modularity(bi.g, cluster_leiden(bi.g, resolution_parameter = 2)$membership), 
+leiden_small=modularity(bi.g, cluster_leiden(bi.g, resolution_parameter = .5)$membership))  
+
+
+knitr::kable(mod.df)
 
 
 ```
 
+### Plot
 
-```{r, message=FALSE}
-```
-
-
-```{r, message=FALSE}
-
-
-```
-
-
-We can also construct some formal tests.
+We could use either Louvain or Walktrap. I'll try Walktrap since I haven't already constructed it although given the score they are very likely to be identical.
 
 ```{r, message=FALSE}
 
+V(bi.g)$walk <- cluster_walktrap(bi.g)$membership
 
-```
+shape <- c("circle", "square")
 
-We could even construct a logistic regression predicting likelihood of adopting the new practice.
+V(bi.g)$shape <- shape[as.factor(V(bi.g)$region)]
 
-```{r, message=FALSE}
+plot.igraph(bi.g, layout=layout.big, vertex.color=V(bi.g)$walk, vertex.shape=
+              V(bi.g)$shape, main="Consulting Bicomponent (Walktrap Communities)")
 
-
-
+legend("bottomright",
+       c("Europe", "USA"), 
+pch=c(1,0) , bty = "n",pt.cex = 2, cex = 1)
 
 ```
 

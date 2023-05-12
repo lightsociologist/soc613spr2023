@@ -75,7 +75,7 @@ First we calculate components.
 
 ```{r, echo=TRUE}
 
-V(karate)$label <- c(1:34)
+V(karate)$name <- c(1:34)
 
 comps <- components(karate)
 
@@ -83,15 +83,17 @@ print(comps$csize)
 
 ```
 
-Next, we can calculate bicomponents and plot the bicomponent.
+Next, we can calculate bicomponents and plot the bicomponent. ``biconnected.components`` results in several objects, but to pick the subgraph we can select from the list of bicomponents stored as ``$components``. If we want to identify the largest bicomponent we can use ``max(length)``. So, if we store the results of ``biconnected.components`` in an object called biconnected, we can select the largest bicomponent by: 
+
+`bicomponent.org$components[[max(length(bicomponent.org$components))]]`
+
+Next, we use the ``induced.subgraph(g, vids=x)`` function in **igraph** where *g* is the graph and *x* equals the list of vertices that you want to use in the subgraph. Tihs is the results of the above example. 
 
 ```{r echo=TRUE}
 
-V(karate)$name <- V(karate)$label
-
 biconnected <- biconnected.components(karate)
 
-b1 <- biconnected$components[[1]]
+b1 <- biconnected$components[[max(length(biconnected$components))]]
 
 g2 <- induced.subgraph(graph=karate,vids=b1)
 
@@ -114,7 +116,7 @@ In **igraph**:
 
 cliques <- largest_cliques(karate)
 
-c1 <- cliques[[1]]
+c1 <- cliques[[max(length(cliques))]]
 
 clique2 <- induced.subgraph(graph=karate,vids=c1)
 
@@ -127,11 +129,13 @@ plot(clique2)
 
 k-Cores are more relaxed way of thinking about groups. These are subgraphs where each node is maximally connected to at least k neighboring nodes. Some scholars also think of coreness as a proxy for centrality in very large networks.
 
-``coreness(g)`` in **igraph** cacluates cores. Each node is assigned a k for its largest k-core.
+``coreness(g)`` in **igraph** cacluates cores. Each node is assigned a k for its largest k-core. We can quickly examine the distribution of largest cores using ``table``in base **R**.
 
 ``` {r, echo=TRUE}
 
 kcore <- coreness(karate)    
+
+table(kcore)
 
 ```
 
