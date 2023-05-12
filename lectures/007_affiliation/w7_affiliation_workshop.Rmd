@@ -1,5 +1,5 @@
 ---
-title: 'Week 6: Cohesion and Community'
+title: 'Week 7: Affiliation Networks'
 output:
   html_document:
     toc: yes
@@ -138,7 +138,7 @@ Steps in processing texts:
 
 Let's build a text network and a network of documents from the Web of Science on "computational social science."
 
-## Download Data
+### Download Data
 
 I will be providing an overview of downloading data in Web of Science. We download these data manually at this point and use the **bibliometrix** package to bring the data into a useable file and export to a .csv.
 
@@ -148,7 +148,7 @@ So, we can also start by reading the data in .csv form:
 comp <- read.csv("data/comp_socsci.csv")
 ```
 
-## Organize and Clean Data
+### Organize and Clean Data
 
 We can organize and clean the data by deleting articles that don't have an abstract and by combining keywords, titles, and abstracts. 
 
@@ -204,7 +204,7 @@ noun_fin <- noun_fin %>% filter(keep==1)
 
 ```
 
-## Computational Social Science Text Network
+### Computational Social Science Text Network
 
 The output of the data cleaning process results in a edge list, if we ``select`` (from **dplyr**) on the lemma - or root word - and the doc_id. Next, we can use ``graph_from_data_frame`` on this data frame edge list to create an **igraph** network. The ``bipartite.mapping`` function in **igraph** identifies both of the modes and we store it as a node attribute in the usual way (``V(g)$attribute``). To project this two mode network into a one mode network, we can use the ``bipartite_projection`` function, where "multiplicity" indicates whether the co-appearances should be added together as an edge weight and where "which" is FALSE is the first mode and TRUE is the second mode. As the the lemma is in the first column, we can choose FALSE here.
 
