@@ -3,14 +3,18 @@ title: 'Week 7: Affiliation Networks'
 output:
   html_document:
     toc: yes
-    toc_depth: 5
+    toc_depth: 3
     toc_float: yes
     df_print: paged
+    theme: united
+    highlight: tango
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE)
 ```
+
+## Introduction
 
 How do social actors or entities connect to one another? On its face the answer is obvious: Actors are directly tied to one another through social relations (friends with, talks to, advice from, and so on). But, social scientists for some time have viewed social connectivity more broadly to include how actors connect to one another through indirect ties through co-membership or affiliation (members of the same team, members of the same corporate board, co-authorhip, and so on). As Cooley wrote,  “A man may regarded as the point of intersection of an indefinite number of circles representing social groups, having as many arcs passing through him as there are groups.” 
 
@@ -124,11 +128,11 @@ I provide an overview of downloading data in Web of Science [below](#download). 
 
 So, we can also start by reading the data into **Bibliometrix**.
 
-### Organize and Analyze Data in **Bibliometrix** {#organize}
+### Introduction to **Bibliometrix** {#organize}
 
 First, we need to bring the raw WoS data into a readable file. We can do this with the ``convert2df`` function in **Bibliometrix**. This requires a path for where the raw files are stored. We can grab those paths with the ``list.files`` function and be sure to specify that ``full.names = TRUE`` to grab the entire path.
 
-```{r, echo=T, message=FALSE}
+```{r, echo=T, message=FALSE, results=FALSE}
 
 sh.articles <- list.files(path="data/articles/", full.names = TRUE)
 
