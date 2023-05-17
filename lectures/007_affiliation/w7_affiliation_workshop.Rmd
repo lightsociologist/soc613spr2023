@@ -80,7 +80,7 @@ print(dual)
 
 ```
 
-## Duality, Transformations, Matrix Algebra
+## Duality & Matrix Algebra
 
 Recall that the matrix is a simple and elegant way to manipulate networks. That is most obviously the case, perhaps, when thinking through duality.
 

@@ -1,22 +1,24 @@
 ---
 title: 'Week 2: Introduction to R and Igraph'
-author: "Ryan Light (and jimi adams and Jim Moody and several others and Dr. Google)"
-date: "April 5, 2021"
 output:
   html_document:
+    toc: yes
+    toc_depth: 3
+    toc_float: yes
     df_print: paged
-  pdf_document: default
+    theme: united
+    highlight: tango
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-# A few R Basics
+## A Few R Basics
 
 First, lets look at some basic operators in R. This tracks nicely with Datacamp's Introduction to R and it is recommended that you check that out (or an equivalent) to get a hang of some of these basic operations.
 
-## Arithmetic Operators
+### Arithmetic and Logical Operators
 
 You can use R as a caculator with arithmetic operators:
 
@@ -30,8 +32,6 @@ You can use R to assign values (and print value):
 a <- 3 + 4
 print(a)
 ```
-
-## Logical Operators
 
 Logical operators can tell us whether something is true or false and is useful for when we are working in functions.
 
@@ -60,7 +60,7 @@ TRUE > FALSE
 1 >= 100
 ```
 
-## Functions
+### R Functions
 
 Functions drive much of what happens in R. Many functions operate within packages and are "called" from them, but we can also make our own.
 
@@ -99,7 +99,8 @@ bnums <- c(2:6) #This is a vector
 square.sum.variables(anums, bnums)
 ```
 
-## Object management
+### Object Management
+
 These help with your workspace. If you are using projects, these may not be so necessary, but good to keep things cleaned up.
 
  function       | description
@@ -111,7 +112,8 @@ These help with your workspace. If you are using projects, these may not be so n
  rm(list=ls())	| removes all objects in workspace. 
                 
 
-## Calling Help Files
+### Calling Help Files
+
 Often helpful to look at help material and there are several ways to do so. You can also google these documents which can be an easy way to access.
 
   function      | description
@@ -122,7 +124,8 @@ Often helpful to look at help material and there are several ways to do so. You 
  help.search('square root')	| search help pages for topics
  ??sqrt				| same as help.search()
 
-## Objects and Object Classes
+### Objects and Object Classes
+
 Perhaps the biggest difference between R and statistics packages is the variety of objects that R uses to store the stuff that you make. From vectors, to matrices, dataframes, to package-specfic objects, we will create objects as a kind of the fuel to the function's engine.
 
 To begin the function "class" helps us to identify what kind of object we are working with. We can see this with the anums object we created above.
@@ -178,6 +181,7 @@ seq_dbl <- rep(1:5,each=2)
 ```
 
 And we can call particular elements and use logical operators to identify aspects of the sequences (or other vectors)
+
 ```{r}
 # the 4th element in the assigned vector seq_dbl
 seq_dbl[4]					
@@ -391,7 +395,7 @@ How to read the Igraph code:
 
 "The first line always starts with IGRAPH, showing you that the object is an igraph graph. Then a four letter long code string is printed. The first letter distinguishes between directed (‘D’) and undirected (‘U’) graphs. The second letter is ‘N’ for named graphs, i.e. graphs with the name vertex attribute set. The third letter is ‘W’ for weighted graphs, i.e. graphs with the weight edge attribute set. The fourth letter is ‘B’ for bipartite graphs, i.e. for graphs with the type vertex attribute set." (from http://igraph.org/r/doc/print.igraph.html)
 
-### Family Tree Example
+## Family Tree Example
 
 The first family tree has just one step and one tie type
 ```{r} 

@@ -6,11 +6,15 @@ output:
     toc_depth: 5
     toc_float: yes
     df_print: paged
+    theme: united
+    highlight: tango
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
+
+## Introduction
 
 Background:  At the individual level, one dimension of position in the network can be captured through centrality.
 

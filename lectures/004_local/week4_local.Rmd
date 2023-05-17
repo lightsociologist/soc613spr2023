@@ -2,8 +2,15 @@
 title: 'Week 4: Overview of Local Networks'
 output:
   html_document:
+    toc: yes
+    toc_depth: 3
+    toc_float: yes
     df_print: paged
+    theme: united
+    highlight: tango
 ---
+
+## Introduction
 
 While many social scientists are easily seduced by the massive networks that we can observe and analyze, local networks remain a central concern of social scientists. As Smith (2020) describes, there are at least five reasons why local or ego networks remain important: 
 

@@ -2,12 +2,19 @@
 title: 'Week 3: Introduction to Network Visualization'
 output:
   html_document:
+    toc: yes
+    toc_depth: 3
+    toc_float: yes
     df_print: paged
+    theme: united
+    highlight: tango
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE)
 ```
+
+## Introduction
 
 The ability to visualize complex information is a central strength of social network analysis. It is important to consider principles of good visualization as it is easy to seduced by the value of a network visualization when it can complicate comprehension rather than facilitate it. Thankfully, there are numerous strategies for plotting networks to help tell stories about your data.
 
@@ -28,13 +35,11 @@ library(ggraph)
 library(ggforce)
 ```
 
-## Bringing Data Into igraph
+## Bringing Data Into **igraph**
 
 There are many different ways to bring data into igraph. Remember that the two main ways to store network data is either an edge list (two columns: one sender, one receiver) or an adjacency matrix (i rows and j columns are the same people and the cells indicate a connection between the i row and j column). If you can make an edgelist or a matrix you can load the data into igraph. 
 
 Note: You can find a lot of cool networks through the links [here](https://dnac.ssri.duke.edu/datasets.php)
-
-## Bringing Data Into igraph: importing csv Files
 
 First, we can bring in the data into r using the base function read.csv(). The first example is an undirected toy network. Note that we will keep the column names as indicated by "header=T" and that we store the matrix as a matrix with "as..matrix".
 
@@ -69,7 +74,6 @@ V(toy.g)$name <- toy.nodes$name
 V(toy.g)$attribute <- toy.nodes$attr1
 
 ```
-
 
 We can use plot.igraph() function to visualize the graph. We use the attribute that was introduced from nodes to color the nodes.
 
@@ -108,7 +112,7 @@ plot.igraph(simplify(toy.directed.g), vertex.color=V(toy.directed.g)$attribute)
 
 Note that the simplify function removes any loops or multiple edges.
 
-## Bringing Data into igraph: edge lists
+### Bringing Data into igraph: edge lists
 
 You can also write edge lists directly into igraph. Igraph will read each pair as an edge. Here we have indicated an undirected graph by directed=F.
 
@@ -128,7 +132,7 @@ E(exa_g)$type <- c("friend", "friend" , "friend", "family", "family", "family")	
 plot.igraph(exa_g, vertex.color=V(exa_g)$attr1*2, edge.color=c("red","green")[(E(exa_g)$type=="family")+1])	# how’s it look?
 ```
 
-## Bringing data in igraph using read.graph
+### Bringing data in igraph using read.graph
 
 We can bring data into igraph via other programs like the networks program Pajek. Pajek is a popular program used to visualize and analyze social networks. The file extensions for Pajek include .net for the network file and .clu for attributes which are often kept in separate files.
 
@@ -141,7 +145,8 @@ valente <- read.graph("data/valente.net", format="pajek")
 
 class(valente)
 ```
-## Quick look at igraph info
+
+## **igraph** basics
 
 "The first line always starts with IGRAPH, showing you that the object is an igraph graph. Then a four letter long code string is printed. The first letter distinguishes between directed (‘D’) and undirected (‘U’) graphs. The second letter is ‘N’ for named graphs, i.e. graphs with the name vertex attribute set. The third letter is ‘W’ for weighted graphs, i.e. graphs with the weight edge attribute set. The fourth letter is ‘B’ for bipartite graphs, i.e. for graphs with the type vertex attribute set." (http://igraph.org/r/doc/print.igraph.html)
 
@@ -150,7 +155,7 @@ print(valente)
 ```
 
 
-## Reading Attributes
+### Reading Attributes
 
 Next, we bring the gender attribute (valente.clu) file from pajek into R. We skip the first line (skip=1) because pajek files include one additional line that is not needed.
 
@@ -163,15 +168,11 @@ gender <- as.matrix(read.table("data/valente.clu", skip=1))
 V(valente)$gender <- as.vector(gender)			
 ```
 
-## Initial Plot
-
 Let's look at the graph. What can we learn about this classroom given the friendship nominations? Note the attribute key: blue=girls and white=boys
 
 ```{r fig.width=4, fig.height=4, fig.align='center', echo=TRUE}
 plot.igraph(valente)	
 ```
-
-## Adding an attribute to the graph
 
 We can add attributes to the graph in several ways. The first and most obvious way is to identify differences in a nominal attribute by different colored nodes.
 
@@ -181,7 +182,7 @@ This assigns attribute-based colors to nodes: vertex.color=V(g)$attribute
 plot.igraph(valente, vertex.color=V(valente)$gender*2)	
 ```
 
-## Specifying colors of an attribute
+### Specifying colors of an attribute
 
 We likely want to control the colors that we are using in our plots. There are several ways to do that. For example, we can set the colors of the attributes that interest us.
 
@@ -194,21 +195,20 @@ V(valente)$gender <- V(valente)$gender+1
 
 V(valente)$colors <- attr.colors[V(valente)$gender]
 ```
-## Specifying colors of an attribute
 
 ```{r fig.width=4, fig.align="center", echo=FALSE}
 plot.igraph(valente, vertex.color=V(valente)$colors)
 
 ```
 
-## Specifying colors of a graph
+### Specifying colors of a graph
 If you don't have an attribute of interest you can set vertex.color in the same way you did above, but with an color instead of an attribute.
 
 ```{r fig.width=4, fig.height=4, fig.align='center', echo=TRUE}
 plot.igraph(valente, vertex.color="blue")
 ```
 
-## Node size
+## Other Graph Aesthetics
 We can also use nodal size to convey something about the magnitude of a particular actor. Here we make a vertex attribute for degree (the total number of edges connected to a node) and then set the vertex size.
 
 vertex.size=V(graph)$attribute
@@ -220,15 +220,11 @@ plot.igraph(valente, vertex.color=V(valente)$colors,
             vertex.size=V(valente)$node.size)
 ```
 
-## Node size
-
 ```{r fig.align='center', echo=FALSE}
 V(valente)$node.size <- degree(valente)
 
 plot.igraph(valente, vertex.color=V(valente)$colors, vertex.size=V(valente)$node.size)
 ```
-
-## Node size
 
 We can can adjust this a bit by adding a multiplier. We can also change the shape of the node.
 
@@ -244,17 +240,12 @@ plot.igraph(valente, vertex.color=V(valente)$colors,
             vertex.size=V(valente)$node.size*2, vertex.shape="square")
 ```
 
-## Node size
-
 ```{r fig.align='center', echo=FALSE}
 V(valente)$node.size <- degree(valente)
 
 plot.igraph(valente, vertex.color=V(valente)$colors, vertex.size=V(valente)$node.size*2,
             vertex.shape="square")
 ```
-
-
-## Visualizing edges
 
 The most annoying default for R is the arrow size in directed graphs. You can change that with  edge.arrow.size=.5
 
@@ -265,11 +256,9 @@ plot.igraph(valente, vertex.color=V(valente)$colors,
 
 ```
 
-## Visualizing Edges
-
 We can control the width and/or gray scale of edges to convey tie strength or some other characteristic using
 
-edge.width=E(g)$attribute
+``edge.width=E(g)$attribute``
 
 ```{r fig.width=4, fig.height=4, echo=TRUE, eval=FALSE}
 counts <- seq(from=1, to=10, by=1)
@@ -281,8 +270,6 @@ plot.igraph(valente, vertex.color=V(valente)$colors, edge.arrow.size=.5,
             edge.width=E(valente)$weight)
 
 ```
-
-## Visualizing Edges
 
 
 ```{r fig.align="center", echo=FALSE}
@@ -296,8 +283,6 @@ plot.igraph(valente, vertex.color=V(valente)$colors, edge.arrow.size=.5,
 
 ```
 
-## Visualizing Edges
-
 Again, we might want to include a multiplier if the edges are too big.
 
 ```{r fig.align="center", fig.width=4, fig.height=4, echo=TRUE}
@@ -306,7 +291,7 @@ plot.igraph(valente, vertex.color=V(valente)$colors, edge.arrow.size=.5,
 
 ```
 
-## Layouts
+## Network Layouts
 
 One of the most important decisions that we make regards the graph layout. Igrpah includes numerous layout options. Which you can find [here](http://igraph.org/r/doc/layout_.html)
 
@@ -316,8 +301,6 @@ plot.igraph(valente, vertex.color=V(valente)$colors, edge.arrow.size=.5,
 
 ```
 
-## Layouts
-
 Fruchterman-Reingold - Force Directed
 
 ```{r fig.align="center", fig.width=4, fig.height=4, echo=TRUE}
@@ -326,15 +309,13 @@ plot.igraph(valente, vertex.color=V(valente)$colors, edge.arrow.size=.5,
 
 ```
 
-## Grid Layout
 Grid Layout - Make a grid
+
 ```{r fig.align="center", fig.width=4, fig.height=4, echo=TRUE}
 plot.igraph(valente, vertex.color=V(valente)$colors, edge.arrow.size=.5, 
             edge.width=E(valente)$weight/2, layout=layout.grid)
 
 ```
-
-## Layouts
 
 Kamada-Kawai: Spring Embedder Layout
 
@@ -344,16 +325,15 @@ plot.igraph(valente, vertex.color=V(valente)$colors, edge.arrow.size=.5,
 
 ```
 
-
-## Layouts
 MDS Layout
+
 ```{r fig.align="center", fig.width=4, fig.height=4, echo=TRUE}
 plot.igraph(valente, vertex.color=V(valente)$colors, edge.arrow.size=.5, 
             edge.width=E(valente)$weight/2, layout=layout.mds)
 
 ```
 
-## ggraph alternative
+## **ggraph**: **igraph** alternative
 
 A relatively recent advancement is graph visualization and (some) analysis that is tidy (tidygraph) and ggplot-style (ggraph). These are more flexible and certainly more intuitive for those familiar with ggplot. The visualizations have a nice aesthetic and sometimes I prefer it (but not always). You can mostly get away with doubling down on visualization in either igraph or ggraph.  But some familiarity with both is also likely ot be useful.
 
@@ -377,7 +357,7 @@ ggraph(valente, layout = "kk") +
 
 ```
 
-## Bringing Data into igraph: two-mode data
+## Two-mode Data, Briefly
 
 In a few weeks we will talk about duality and two-mode networks. Here is a quick example of how we might bring a two-mode network into igraph.
 
@@ -396,8 +376,6 @@ V(sw.g)$type <- bipartite.mapping(sw.g)$type
 
 ```
 
-## Bringing Data into igraph: two-mode data
-
 ```{r, echo=TRUE}
 
 V(sw.g)$color <- ifelse(V(sw.g)$type, "lightblue", "salmon")
@@ -408,16 +386,12 @@ plot.igraph(sw.g, layout=layout.fruchterman.reingold, vertex.label.color="black"
 
 ```
 
-## Bringing Data into igraph: two-mode data
-
 ```{r, echo=TRUE}
 
 sw.d3 <- igraph_to_networkD3(sw.g)
 
 simpleNetwork(sw.d3$links)
 ```
-
-## Bringing Data into igraph: two-mode data
 
 ```{r, echo=FALSE}
 
