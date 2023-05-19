@@ -37,25 +37,26 @@ Homework: [.pdf](https://github.com/lightsociologist/soc613spr2023/tree/main/hom
 
 ### 005 Centrality and Power
 
-Slides: [.html](https://raw.githack.com/lightsociologist/soc613spr2023/main/lectures/005_centrality/week5_centrality_slides.html) 
-
 Workshop: [.html](https://raw.githack.com/lightsociologist/soc613spr2023/main/lectures/005_centrality/week5_centrality_workshop.html) | [.rmd](https://github.com/lightsociologist/soc613spr2023/tree/main/lectures/005_centrality/week5_centrality_workshop.Rmd)
 
 Homework: [.pdf](https://github.com/lightsociologist/soc613spr2023/tree/main/homework/005hw/w5_centrality.pdf) | [cheatsheet.html](https://raw.githack.com/lightsociologist/soc613spr2023/main/homework/005hw/hw5_cheat.html) | [cheatsheet.qmd](https://github.com/lightsociologist/soc613spr2023/tree/main/homework/005hw/hw5_cheat.qmd)
 
-### 006 Cohesion and Community Detection
+Slides: [.html](https://raw.githack.com/lightsociologist/soc613spr2023/main/lectures/005_centrality/week5_centrality_slides.html) These slides from previous iterations of the course are mostly redundant with the workshop, but offer some more in-depth engagement with material, including more of the math.
 
-Slides: [.html](https://raw.githack.com/lightsociologist/soc613spr2023/main/lectures/006_cohesion/week6_slides.html) 
+### 006 Cohesion and Community Detection
 
 Workshop: [.html](https://raw.githack.com/lightsociologist/soc613spr2023/main/lectures/006_cohesion/week6_cohesion_workshop.html) | [.rmd](https://github.com/lightsociologist/soc613spr2023/tree/main/lectures/006_cohesion/week6_cohesion_workshop.Rmd)
 
 Homework: [.pdf](https://github.com/lightsociologist/soc613spr2023/tree/main/homework/006hw/w6_community.pdf) | [cheatsheet.html](https://raw.githack.com/lightsociologist/soc613spr2023/main/homework/006hw/hw6_cheat.html) | [cheatsheet.qmd](https://github.com/lightsociologist/soc613spr2023/tree/main/homework/006hw/hw6_cheat.qmd)
 
+Slides: [.html](https://raw.githack.com/lightsociologist/soc613spr2023/main/lectures/006_cohesion/week6_slides.html) These slides from previous iterations of the course are mostly redundant with the workshop, but offer some more in-depth engagement with material, including more of the math.
+
 ### 007 Two-Mode Networks
 
 Workshop: [.html](https://raw.githack.com/lightsociologist/soc613spr2023/main/lectures/007_affiliation/w7_affiliation_workshop.html) | [.rmd](https://github.com/lightsociologist/soc613spr2023/tree/main/lectures/007_affiliation/w7_affiliation_workshop.Rmd)
 
-Homework: TBD
+Homework: [.pdf](https://github.com/lightsociologist/soc613spr2023/tree/main/homework/007hw/w7_affiliation_networks.pdf) | [cheatsheet.html](https://raw.githack.com/lightsociologist/soc613spr2023/main/homework/007hw/hw7_cheat.html) | [cheatsheet.qmd](https://github.com/lightsociologist/soc613spr2023/tree/main/homework/007hw/hw7_cheat.qmd)
+
 
 ### 008 Diffusion and Preliminary Statistics
 
@@ -65,11 +66,11 @@ Homework: [.pdf](https://github.com/lightsociologist/soc613spr2023/tree/main/hom
 
 ### 009 Introduction to Statistical Models
 
-Slides: [.html](https://raw.githack.com/lightsociologist/soc613spr2023/main/lectures/009_ergms/w9_slides.html) 
-
 Workshop: [.html](https://raw.githack.com/lightsociologist/soc613spr2023/main/lectures/009_ergms/wk9_ergm_wksp.html) 
 
 Homework: [.pdf](https://github.com/lightsociologist/soc613spr2023/tree/main/homework/009hw/w9_ergm.pdf)
+
+Slides: [.html](https://raw.githack.com/lightsociologist/soc613spr2023/main/lectures/009_ergms/w9_slides.html)(https://raw.githack.com/lightsociologist/soc613spr2023/main/lectures/006_cohesion/week6_slides.html) These slides from previous iterations of the course are mostly redundant with the workshop, but offer some more in-depth engagement with material, including more of the math.
 
 ### 010 Oddities, Advanced Models, and Next Steps
 
