@@ -42,7 +42,7 @@ We can see how these types of transformations work by turning to a toy example.
 
 First, we should load the packages that we will need in this workshop. We will use **bibliometrix** for some two mode science network analysis,  **igraph** for network analysis and visualization, **ggraph** for visualization, **udpipe** for some language parsing, and **dplyr**, **tidygraph**, and **ggforce** for a few data organization and visualization tasks. We use **tidytext** and **widyr** for some text processing functions.
 
-```{r, message=FALSE}
+```{r, message=FALSE, echo=T}
 library(bibliometrix)
 library(igraph)
 library(ggraph)
@@ -218,6 +218,113 @@ aucomp.g <- induced.subgraph(graph=au1mode.g, vids=keep_ids)
 plot.igraph(aucomp.g, layout=layout_with_kk, vertex.label.cex=.5, vertex.size=5)
 
 ```
+
+### Keyword Networks
+
+Keyword networks are another strategy for looking at the structure of a scientific field. The provide evidence of the epistemic space or the knowledge area in which scholars work. 
+
+Keyword networks are two-mode networks (articles x keywords) and we can keep them as two-modes or project them to a keyword x keyword network.
+
+Let's look at both of these networks in turn.
+
+We begin by using the ``cocMatrix`` in **Bibliometrix** to pull out the two-mode keyword matrix. Here, we set ``Field="DE"`` as "DE" is the Web of Science code for author-provided keywords. Then, we use ``graph_from_incidence`` from **igraph** to create an **igraph** object from the matrix.
+
+```{r, echo=T, message=FALSE}
+
+kw.mat <- cocMatrix(sh.df, Field="DE")
+
+kw.2mode <- graph_from_incidence_matrix(kw.mat)
+
+```
+We can plot the two-mode keyword network after removing any isolates or articles without any keywords using ``delete.vertices`` in **igraph**.
+
+```{r, echo=T, message=FALSE}
+
+kw2.noiso <- delete.vertices(kw.2mode, which(degree(kw.2mode)==0))
+
+plot(kw2.noiso, layout=layout_with_fr, vertex.label=NA, vertex.size=4)
+
+```
+
+We can see that there appears to be a large connected component and many smaller components. This isn't super informative, but we can graph some basic statistics for reference. Here, we count the number of components of various sizes, the degree centralization, and the edge density.
+
+
+```{r, echo=T, message=FALSE}
+
+#can examine the components here
+
+table(components(kw2.noiso)$csize)
+
+#centralization
+
+centralization.degree(kw2.noiso)
+
+# density
+
+edge_density(kw2.noiso)
+
+```
+
+Let's dig deeper into the large component. First, we use ``components`` from **igraph** then we identify the largest component using ``which.max`` in base **R**.
+
+```{r, echo=T, message=FALSE}
+
+comps <- components(kw.2mode)
+
+bigcomp <- which.max(comps$csize)
+
+```
+
+Next, we identify the vertices that are in the group identified with ``which.max`` using brackets and shrink the graph using ``induced.subgraph`` in **igraph**.
+
+```{r, echo=T, message=FALSE}
+
+vert_ids <- V(kw.2mode)[comps$membership == bigcomp]
+
+kw2.gcc <- induced_subgraph(kw.2mode, vert_ids)
+
+```
+
+Let's look at some clusters using ``cluster_louvain`` and ``plot`` in **igraph**.
+
+```{r, echo=T, message=FALSE}
+
+lv <- cluster_louvain(kw2.gcc)
+
+plot(kw2.gcc, layout=layout_with_kk, vertex.color=lv$membership, vertex.label.cex=.5, vertex.size=degree(kw2.gcc)/5)
+
+```
+
+The labels make it very difficult to read, so let's see if we can plot only the one's that are attached to nodes with high degree. We can combine ``which`` and ``quantile`` to do this task.
+
+```{r, echo=T, message=FALSE}
+
+lab.keep <- which(degree(kw2.gcc) > (quantile(degree(kw2.gcc), .99)
+))
+
+```
+
+And then we plot using ``ifelse`` to label only those in the top group.
+
+```{r, echo=T, message=FALSE}
+
+plot(kw2.gcc, vertex.label = ifelse(V(kw2.gcc) %in% lab.keep, V(kw2.gcc)$name, NA),
+     vertex.color=lv$membership, vertex.label.cex=.5,      vertex.size=degree(kw2.gcc)/10)
+
+```
+Still, somewhat of a mess, but we can imagine how pruning the network may lead to something that helps us to see the structure of this literature.
+
+The one-mode approach is exactly the same, but we start by using ``bipartite_projection`` from **igraph** on the two-mode network and selecting ``which="true"`` because we know the keywords are in the columns of the original matrix. We can plot that network of course.
+
+```{r, message=FALSE}
+
+kw.1 <- bipartite_projection(kw.2mode, multiplicity=TRUE, which="true")
+
+plot(kw.1, vertex.label=NA, vertex.size=degree(kw.1)/10)
+
+```
+
+We can then go through the same kind of processes as the two mode networks in terms of finding the largest connected component, locating communities, plotting with reduced labels and so forth to locate patterns in the keyword structure.
 
 ### Text Networks
 

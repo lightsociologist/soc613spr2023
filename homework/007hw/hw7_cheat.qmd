@@ -1,0 +1,375 @@
+---
+title: "HW7 Cheat Sheet"
+format: 
+  html:
+    code-fold: true
+    embed-resources: true
+execute:
+  warning: false
+editor: source
+---
+
+This is a cheat sheet for the seventh homework on affiliation. It works through each step in R.
+
+First, you need the following packages.
+
+```{r, message=FALSE}
+library(bibliometrix)
+library(igraph)
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+```
+
+
+## 1. Introductory Inspection
+
+First, we read the data. Next, you can answer most of the questions by analyzing the culture.df data frame. You can also easily provide an overview using the ``biblioAnalysis`` function of **Bibliometrix**. ``summary`` and ``plot`` will provide overviews to answer the introductory questions. 
+
+```{r, message=FALSE}
+
+culture.df <- readRDS("data/culture_corpus.RDS")
+
+cul.bib <- biblioAnalysis(culture.df, sep=';')
+
+summary(cul.bib, k=10)
+
+plot(x=cul.bib, k=5, pause=FALSE)
+
+```
+The bonus in the section can be constructed in ggplot. There are numerous ways to do this. I find the counts for each year and discpline by counting the rows using ``n()`` in the ``summarise`` function in **dplyr** and append it to a dataframe with just the counts by year using ``bind_rows``.
+
+```{r, message=FALSE}
+
+dsum <- culture.df %>% group_by(WC, PY) %>% summarise(cnt = n())
+
+tsum <- culture.df %>% group_by(PY) %>% summarise(cnt = n())
+
+tsum$WC <- "TOTAL"
+
+tsum <- bind_rows(tsum, dsum)
+
+ggplot(data = tsum, aes(x=PY, y=cnt, group=WC, color=WC))  +  
+      geom_smooth(method = "loess") +
+      theme_bw()
+```
+
+## 2. Culture in the Social Sciences
+
+For this section I will build three different kinds of networks, but you can certainly build more.
+
+### i.Co-authorship Network 
+
+First, I will build the co-authorship network. I'm going to build this network using the ``cocMatrix`` function.
+
+```{r, message=FALSE}
+
+#Use Bibliometrix to make a two-matrix of Articles X Authors
+
+coauth <- cocMatrix(culture.df, Field="AU")
+
+#Make an Igraph object from this matrix
+
+coauth.2mode <- graph_from_incidence_matrix(coauth)
+
+#Make a one-mode projection of this matrix looking at columns (Author X Author)
+
+coauth.1mode <- bipartite.projection(coauth.2mode, multiplicity=TRUE, which=TRUE)
+
+# Plot the one mode
+
+plot(coauth.1mode, vertex.label=NA, vertex.size=4)
+
+# Let's get rid of isolates
+
+coauth.noiso <- delete.vertices(coauth.1mode, which(degree(coauth.1mode)==0))
+
+# and plot
+
+plot(coauth.noiso, layout=layout_with_fr, vertex.label=NA, vertex.size=4)
+
+#can examine the components here
+
+table(components(coauth.noiso)$csize)
+
+#centralization
+
+centralization.degree(coauth.noiso)
+
+# density
+
+edge_density(coauth.noiso)
+
+```
+
+### ii.Keyword 2-mode Network
+
+Next, we can look at the keyword network in two modes.
+
+```{r, message=FALSE}
+
+
+kw.mat <- cocMatrix(culture.df, Field="DE")
+
+kw.2mode <- graph_from_incidence_matrix(kw.mat)
+
+# and plot
+
+plot(kw.2mode, layout=layout_with_fr, vertex.label=NA, vertex.size=4)
+
+# Let's get rid of isolates - Presumambly papers without keywords
+
+kw2.noiso <- delete.vertices(kw.2mode, which(degree(kw.2mode)==0))
+
+# and plot
+
+plot(kw2.noiso, layout=layout_with_fr, vertex.label=NA, vertex.size=4)
+
+#can examine the components here
+
+table(components(kw2.noiso)$csize)
+
+#centralization
+
+centralization.degree(kw2.noiso)
+
+# density
+
+edge_density(kw2.noiso)
+
+```
+
+### iii. Keyword 1-mode Network
+
+Now we can look at the keyword network in 1-mode
+
+```{r, message=FALSE}
+
+
+kw.mat <- cocMatrix(culture.df, Field="DE")
+
+kw.2mode <- graph_from_incidence_matrix(kw.mat)
+
+kw.1 <- bipartite_projection(kw.2mode, multiplicity=TRUE, which="true")
+
+plot(kw.1, vertex.label=NA, vertex.size=degree(kw.1)/10)
+
+#can examine the components here
+
+table(components(kw.1)$csize)
+
+#centralization
+
+centralization.degree(kw.1)
+
+# density
+
+edge_density(kw.1)
+
+
+```
+
+## 2. Variation in Political Science and Sociology
+
+### i. Variation in Coauthorship
+
+This is a little bit of a challenge because we want to see if authors are political scientists or sociologists.
+
+A simple and reasonable way to do it would be to pull out the giant connected component (or two given the kind of graph that we have) and inspect the authors in the component(s), perhaps by community.
+
+```{r, message=FALSE}
+
+comps <- components(coauth.noiso)
+
+bigcomp <- which.max(comps$csize)
+
+vert_ids <- V(coauth.noiso)[comps$membership == bigcomp]
+
+gcc <- induced_subgraph(coauth.noiso, vert_ids)
+
+comms <- cluster_louvain(gcc)
+
+plot(gcc, layout=layout_with_kk, vertex.label.cex=.7, vertex.size=degree(gcc), vertex.color=as.factor(comms$membership))
+```
+
+If you want to look at the second largest component, you can identify it by size using a simple peek at component sizes in ``table`` and selecting the component size using ``which`` instead of ``which.max``.
+
+```{r, message=FALSE}
+
+table(comps$csize)
+
+secondcomp <- which(comps$csize==16)
+
+vert_ids2 <- V(coauth.noiso)[comps$membership == secondcomp]
+
+gcc2 <- induced_subgraph(coauth.noiso, vert_ids2)
+
+comms2 <- cluster_louvain(gcc2)
+
+plot(gcc2, layout=layout_with_kk, vertex.label.cex=.7, vertex.size=degree(gcc2), vertex.color=as.factor(comms2$membership))
+
+```
+
+Note that you can also program your way into connecting the field and the author data. It is a huge pain as you will see. You do not need to figure this out for this assignment. Lol.
+
+```{r, message=FALSE}
+
+# Not good practice to introduce here, but this is part is extra in multiple ways.
+
+library(tidyverse)
+library(stringr)
+
+aufields <- culture.df %>% select(AU, UT, WC)
+
+mau <- max(str_count(aufields$AU, ";"))
+
+ausplit <- as.data.frame(str_split_fixed(aufields$AU, ";", mau))
+
+aufields$id <- 1:nrow(aufields)
+
+ausplit$id <- 1:nrow(ausplit)
+
+aufields <- left_join(aufields, ausplit)
+
+aulong <- aufields %>% pivot_longer(V1:V13, names_to = "author_order", values_to = "author")
+
+aulong <- aulong %>% filter(author!="")
+
+auwc <- aulong %>% group_by(author, WC) %>% summarise(cnt = n())
+
+ausoc <- auwc %>% filter(WC=="SOCIOLOGY")  
+  
+ausoc <- rename(ausoc, soccnt=cnt)
+
+ausoc <- ausoc %>% select(author, soccnt)
+
+aupol <- auwc %>% filter(WC=="POLITICAL SCIENCE")  
+  
+aupol <- rename(aupol, polcnt=cnt)
+
+aupol <- aupol %>% select(author, polcnt)
+
+autot <-aulong %>%  group_by(author) %>% summarise(cnt=n())
+
+autot <- rename(autot, totcnt=cnt)
+
+#put all data frames into list
+df_list <- list(autot, aupol, ausoc)      
+
+#merge all data frames together
+aus <- df_list %>% reduce(full_join, by='author')
+
+aus[is.na(aus)] <- 0
+
+aus$disc <- ifelse(aus$soccnt>0, "sociology", "political")
+
+aus$disc <- ifelse(aus$totcnt!=aus$soccnt & aus$totcnt!=aus$polcnt, "both", aus$disc)
+
+vname <- data.frame(author=V(coauth.noiso)$name)
+
+vname <- left_join(vname, aus)
+
+V(coauth.noiso)$discipline <- vname$disc
+
+plot(coauth.noiso, layout=layout_with_fr, vertex.label=NA, vertex.size=4, vertex.color=as.factor(V(coauth.noiso)$discipline))
+
+components <- components(coauth.noiso)
+
+table(components$csize)
+
+vert_ids <- V(coauth.noiso)[components$membership == 3]
+
+comp3 <- induced_subgraph(coauth.noiso, vert_ids)
+
+plot(comp3, layout=layout_with_kk, vertex.size=4, vertex.color=as.factor(V(comp3)$discipline))
+
+vert_ids <- V(coauth.noiso)[components$membership == 3]
+
+comp3 <- induced_subgraph(coauth.noiso, vert_ids)
+
+plot(comp3, layout=layout_with_kk, vertex.size=4, vertex.color=as.factor(V(comp3)$discipline))
+
+
+vert_ids <- V(coauth.noiso)[components$membership == 3]
+
+comp3 <- induced_subgraph(coauth.noiso, vert_ids)
+
+plot(comp3, layout=layout_with_kk, vertex.size=4, vertex.color=as.factor(V(comp3)$discipline))
+
+
+vert_ids <- V(coauth.noiso)[components$membership == 3]
+
+comp3 <- induced_subgraph(coauth.noiso, vert_ids)
+
+plot(comp3, layout=layout_with_kk, vertex.size=4, vertex.color=as.factor(V(comp3)$discipline))
+
+
+vert_ids <- V(coauth.noiso)[components$membership == 30]
+
+comp30 <- induced_subgraph(coauth.noiso, vert_ids)
+
+plot(comp30, layout=layout_with_kk, vertex.size=4, vertex.color=as.factor(V(comp30)$discipline))
+
+```
+
+### ii. Variation in two-mode
+
+```{r, message=FALSE}
+
+comps <- components(kw.2mode)
+
+bigcomp <- which.max(comps$csize)
+
+vert_ids <- V(kw.2mode)[comps$membership == bigcomp]
+
+kw2.gcc <- induced_subgraph(kw.2mode, vert_ids)
+
+lbls <- data.frame(SR=V(kw2.gcc)$name)
+
+flds <- culture.df %>% select(SR, WC)
+
+lbls <- left_join(lbls, flds)
+
+lbls$WC <- lbls$WC %>% replace_na("word")
+
+clrs <- data.frame(WC=c("SOCIOLOGY", "POLITICAL SCIENCE", "word"), clr=c("purple", "gold", "tomato"))
+
+lbls <- left_join(lbls, clrs)
+
+V(kw2.gcc)$field <- lbls$WC
+
+lv <- cluster_louvain(kw2.gcc)
+
+plot(kw2.gcc, layout=layout_with_kk, vertex.color=lv$membership, vertex.label.color=lbls$clr, vertex.label.cex=.5, vertex.size=degree(kw2.gcc)/5)
+
+lab.keep <- which(degree(kw2.gcc) > (quantile(degree(kw2.gcc), .90)
+))
+
+
+plot(kw2.gcc, vertex.label = ifelse(V(kw2.gcc) %in% lab.keep, V(kw2.gcc)$name, NA),
+     layout=layout_with_kk, vertex.color=lv$membership, vertex.label.color=lbls$clr, vertex.label.cex=.5, vertex.size=degree(kw2.gcc)/2)
+
+
+
+```
+### ii. Variation in one-mode
+
+```{r, message=FALSE}
+
+comps <- components(kw.1)
+
+bigcomp <- which.max(comps$csize)
+
+vert_ids <- V(kw.1)[comps$membership == bigcomp]
+
+kw1.gcc <- induced_subgraph(kw.1, vert_ids)
+
+lv <- cluster_louvain(kw1.gcc)
+
+lab.keep <- which(degree(kw1.gcc) > (quantile(degree(kw1.gcc), .95)
+))
+
+plot(kw1.gcc, vertex.label = ifelse(V(kw1.gcc) %in% lab.keep, V(kw1.gcc)$name, NA), layout=layout_with_fr, vertex.color=lv$membership, vertex.label.cex=.5, vertex.size=degree(kw1.gcc)/5)
+
+
+```
