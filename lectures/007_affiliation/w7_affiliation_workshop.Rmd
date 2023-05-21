@@ -253,15 +253,15 @@ We can see that there appears to be a large connected component and many smaller
 
 #can examine the components here
 
-table(components(kw2.noiso)$csize)
+print(table(components(kw2.noiso)$csize))
 
 #centralization
 
-centralization.degree(kw2.noiso)
+print(centralization.degree(kw2.noiso)$centralization)
 
 # density
 
-edge_density(kw2.noiso)
+print(edge_density(kw2.noiso))
 
 ```
 

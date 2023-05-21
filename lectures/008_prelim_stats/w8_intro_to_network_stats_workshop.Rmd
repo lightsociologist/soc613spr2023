@@ -1,18 +1,19 @@
 ---
-title: "Week 8: Intro to Network Stats"
-author: "Ryan Light with significant collaboration with jimi adams"
-date: "May 20, 2021"
+title: 'Week 8: Introduction to Network Statistics'
 output:
   html_document:
+    toc: yes
+    toc_depth: 3
+    toc_float: yes
     df_print: paged
+    theme: united
+    highlight: tango
 ---
 
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
-
-## Introduction to Network Statistics
 
 While we have focused on descriptive approaches to networks and measures that can be used as variables in canonical statistical methods, we have not focused on methods that allow us to feel more confident in our descriptive assessments, nor on methods that allow us to predict aspects of the networks themselves.
 
@@ -57,14 +58,13 @@ plot.igraph(flobusiness, vertex.color=as.factor(V(flomarriage)$party))
 
 ```
 
-Now we can build a bunch of random graphs. We can use a for loop to build graphs that are the same number of nodes (gorder function in igraph) and same number of edges (gsize function in igraph).
+Now we can build a bunch of random graphs. We can use a for loop to build graphs that are the same number of nodes (``gorder`` function in igraph) and same number of edges (``gsize`` function in igraph).
 
-The sample_gnm function will produce an Erdos-Reyni random graph which is a simple random graph where edges are randomly distributed throughout the graph.
+The ``sample_gnm`` function will produce an Erdos-Reyni random graph which is a simple random graph where edges are randomly distributed throughout the graph.
 
 We will build 1000 of them.
 
 ```{r, echo=T}
-
 
 gs <- vector('list', 1000)
 
