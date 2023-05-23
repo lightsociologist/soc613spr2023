@@ -62,7 +62,9 @@ Homework: [.pdf](https://github.com/lightsociologist/soc613spr2023/tree/main/hom
 
 Workshop: [.html](https://raw.githack.com/lightsociologist/soc613spr2023/main/lectures/008_prelim_stats/w8_intro_to_network_stats_workshop.html) | [.rmd](https://github.com/lightsociologist/soc613spr2023/tree/main/lectures/008_prelim_stats/w8_intro_to_network_stats_workshop.Rmd) 
 
-Homework: [.pdf](https://github.com/lightsociologist/soc613spr2023/tree/main/homework/008hw/w8_intro_stats.pdf)
+Homework: [.pdf](https://github.com/lightsociologist/soc613spr2023/tree/main/homework/008hw/w8_intro_stats.pdf) | [cheatsheet.html](https://raw.githack.com/lightsociologist/soc613spr2023/main/homework/008hw/hw8_cheat.html) | [cheatsheet.qmd](https://github.com/lightsociologist/soc613spr2023/tree/main/homework/008hw/hw8_cheat.qmd)
+
+
 ### 009 Introduction to Statistical Models
 
 Workshop: [.html](https://raw.githack.com/lightsociologist/soc613spr2023/main/lectures/009_ergms/wk9_ergm_wksp.html) 
