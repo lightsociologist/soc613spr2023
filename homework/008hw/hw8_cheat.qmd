@@ -1,0 +1,129 @@
+---
+title: "HW8 Cheat Sheet"
+format: 
+  html:
+    code-fold: true
+    embed-resources: true
+execute:
+  warning: false
+editor: source
+---
+
+This is a cheat sheet for the eighth homework on an introduction to network statistics. It works through each step in R.
+
+First, you need the following packages.
+
+```{r, message=FALSE}
+library(dplyr)
+library(statnet)
+library(igraph)
+library(ggplot2)
+```
+
+
+## 1. Basic Description
+
+First, we read the data. You will see that there are two networks for each of the networks in the Vickers class dataset. The objects that end with .g are **igraph** objects and the objects with .n are **statnet** objects.
+
+```{r, message=FALSE}
+
+load("data/vickers_class.Rdata")
+
+```
+
+We can use **igraph** to construct random networks.
+
+```{r, message=FALSE}
+gs <- vector('list', 1000)
+
+
+for(i in 1:1000){
+  gs[[i]] <- sample_gnm(n=gorder(best.g), m=gsize(best.g))
+}
+
+
+library(ggplot2)
+
+gs.dist <- data.frame(mdist = unlist(lapply(gs, mean_distance)))
+
+ggplot(gs.dist, aes(x=mdist))+
+  geom_histogram(bins=20, aes(y = ..density..), color="black", fill="gray") +
+  geom_density(alpha=0.2, fill="tomato") +
+  geom_vline(aes(xintercept=mean_distance(best.g)),
+             color="blue", linetype="dashed", size=1) +
+  labs(title="Average Path Length: Vickers Best Network",
+       x ="Average Path Length", y = "Density") +
+  theme_bw()
+
+#Then the clustering coefficient for the Best friends graph.
+
+gs.transitiv <- data.frame(transitiv = unlist(lapply(gs, transitivity)))
+
+ggplot(gs.transitiv, aes(x=transitiv))+
+  geom_histogram(bins=20, aes(y = ..density..), color="black", fill="gray") +
+  geom_density(alpha=0.2, fill="tomato") +
+  geom_vline(aes(xintercept=transitivity(best.g)),
+             color="blue", linetype="dashed", size=1) +
+  labs(title="Transitivity: Vickers Best Network",
+       x ="Transitivity", y = "Density") +
+  theme_bw()
+
+```
+
+We can 
+
+```{r, message=FALSE}
+gs <- vector('list', 1000)
+
+for(i in 1:1000){
+  gs[[i]] <- sample_gnm(n=gorder(work.g), m=gsize(work.g))
+}
+
+
+library(ggplot2)
+
+gs.dist <- data.frame(mdist = unlist(lapply(gs, mean_distance)))
+
+ggplot(gs.dist, aes(x=mdist))+
+  geom_histogram(bins=20, aes(y = ..density..), color="black", fill="gray") +
+  geom_density(alpha=0.2, fill="tomato") +
+  geom_vline(aes(xintercept=mean_distance(work.g)),
+             color="blue", linetype="dashed", size=1) +
+  labs(title="Average Path Length: Vickers Work Network",
+       x ="Average Path Length", y = "Density") +
+  theme_bw()
+
+#CLustering coefficient for work
+
+gs.transitiv <- data.frame(transitiv = unlist(lapply(gs, transitivity)))
+
+ggplot(gs.transitiv, aes(x=transitiv))+
+  geom_histogram(bins=20, aes(y = ..density..), color="black", fill="gray") +
+  geom_density(alpha=0.2, fill="tomato") +
+  geom_vline(aes(xintercept=transitivity(work.g)),
+             color="blue", linetype="dashed", size=1) +
+  labs(title="Transitivity: Vickers Work Network",
+       x ="Transitivity", y = "Density") +
+  theme_bw()
+
+```
+
+
+## 2. QAP Correlation
+
+For this section I will build three different kinds of networks, but you can certainly build more.
+
+```{r, message=FALSE}
+netcor <- qaptest(list(best.n, work.n), gcor, g1=1, g2=2, reps=1000)
+
+summary(netcor)
+```
+
+## 3. QAP Logistic Regression
+
+```{r, message=FALSE}
+nlog <-netlogit(work.n, list(best.n, gender.n),reps=1000)
+
+summary(nlog)
+```
+
