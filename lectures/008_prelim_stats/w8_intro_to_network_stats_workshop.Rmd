@@ -17,7 +17,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 While we have focused on descriptive approaches to networks and measures that can be used as variables in canonical statistical methods, we have not focused on methods that allow us to feel more confident in our descriptive assessments, nor on methods that allow us to predict aspects of the networks themselves.
 
-The goal of gaining confidence in description and predicting aspects of networks - like the factors that lead to the existence of a tie or the factors that contribute to the structure of a network itself - are undoubtedly important, but are not easily implemented using canonical tools. For example, if we want to know whether a network is uniquely dense, we typically cannot compare to other known networks. We usually only have one to a handful observed networks. For example, if we want to know whether the Medici marriage graph has high or low betweenness centralization, we only have the business graph for comparison. When we have a research question that engages an aspect of the network itself - e.g. factors effecting tie formation - we run into the problem of autocorrelation. Feature of the networks, such as ties, are not independent - a key assumption of canonical statistical methods like OLS regression. A person who is extroverted may have many friends affecting the entire row of friendships in a friendship adjacency matrix. 
+The goal of gaining confidence in description and predicting aspects of networks - like the factors that lead to the existence of a tie or the factors that contribute to the structure of a network itself - are undoubtedly important, but are not easily implemented using canonical tools. For example, if we want to know whether a network is uniquely dense, we typically cannot compare to other known networks. We usually only have one to a handful of observed networks. For example, if we want to know whether the Medici marriage graph has high or low betweenness centralization, we only have the business graph for comparison. When we have a research question that engages an aspect of the network itself - e.g. factors effecting tie formation - we run into problems related to the independence of our observations. Feature of networks, such as ties, are not independent - a key assumption of canonical statistical methods like OLS regression. A person who is extroverted may have many friends affecting the entire row of friendships in a friendship adjacency matrix. 
 
 Fortunately, network scholars have developed techniques to deal with these issues. We begin with several of the most basic this week and move to more complicated models next.
 
@@ -27,38 +27,44 @@ Most of the approaches to network modeling that address the concerns described a
 
 We've built simple random graph models in earlier assignments, but refresh them and compare to multiple graphs (in prior workshops we have just compared to a single graph).
 
-There are multiple ways to build random graphs in igraph. You can build random graphs that feature a random distribution of nodes and edges, a graph that has small world features, and a graph that has power law features, for example. The comparison graphs should be created based on your research question. Do you think that the graph should exhibit small world characteristics? Of course, it might be best to compare across the random graphs if you are unsure.
+There are multiple ways to build random graphs in **igraph**. You can build random graphs that feature a random distribution of nodes and edges, a graph that has small world features, and a graph that has power law features, for example. The comparison graphs should be created based on your research question. Do you think that the graph should exhibit small world characteristics? Of course, it might be best to compare across the random graphs if you are unsure.
 
 For our purposes, we ask whether the Florentine marriage or business networks differ from random when considering small world features - average path length and transitivity? 
 
-First, we get everything loaded up and draw the two networks to remind ourselves of what's what. 
+First, we get everything loaded up and draw the two networks to remind ourselves of what's what. We load **statnet** for several of the statistical approaches to networks, **igraph** for plotting and for some of its random network functions, **intergraph** to port to **statnet** and **ggplot** for plotting things. 
 
 
 ```{r, echo=T, message=FALSE}
-#load the package
 
+library(statnet)
 library(igraph)
+library(intergraph)
+library(ggplot2)
 
-#We want to build random graphs that have the same characteristics of the 
+```
+
+Next, we load the Florentine networks. We have looked at the Medici marriage network previously. This file includes the Florentine Business, Marriage, and co-Party networks. The argument is that these the Marriage and Party networks affected the Business ties which allowed for the Medici's consolidation of power.
+
+```{r, echo=T, message=FALSE}
 
 load("data/flonets.Rdata")			
 
 ```
 
-Here is the Florentine marriage network.
+Let's plot the marriage networks in **igraph** using the ``plot`` function with node color varying by political party.
 
 ```{r, echo=T}
 plot.igraph(flomarriage, vertex.color=as.factor(V(flomarriage)$party))
 ```
 
-Here is the Florentine business network.
+Now we can plot the Florentine business network with node color varying by political party as well.
 
 ```{r, echo=T}
 plot.igraph(flobusiness, vertex.color=as.factor(V(flomarriage)$party))
 
 ```
 
-Now we can build a bunch of random graphs. We can use a for loop to build graphs that are the same number of nodes (``gorder`` function in igraph) and same number of edges (``gsize`` function in igraph).
+Now we can build a bunch of random graphs. We can use a for loop to build graphs that are the same number of nodes (``gorder`` function in **igraph**) and same number of edges (``gsize`` function in **igraph**).
 
 The ``sample_gnm`` function will produce an Erdos-Reyni random graph which is a simple random graph where edges are randomly distributed throughout the graph.
 
@@ -79,14 +85,13 @@ Next, we can use lapply to build lists of the measures that we have already disc
 
 For example:
 
-Here, we create a data frame (g.dist) of average shortest distances for each graph by unlisting a lapply that is locating the mean_distance (a function from igraph) for each of the graphs stored in gs.
-
-gs.dist <- data.frame(mdist = unlist(lapply(gs, mean_distance)))
+Here, we create a data frame of average shortest distances for each graph by unlisting a lapply that is locating the ``mean_distance`` (a function from **igraph**) for each of the stored graphs.
 
 We can then plot a histogram of the distribution of distances and compare to the observed value.
 
-Let's do that for average shortest path length (mean_distance function) and transitivity (transitivity function). 
+Let's do that for average shortest path length (``mean_distance`` function) and transitivity (``transitivity`` function).
 
+A small world network will have high local transitivity and short path lengths.
 
 ```{r, echo=T}
 
@@ -156,41 +161,38 @@ geom_vline(aes(xintercept=transitivity(flobusiness)),
 
 ```
 
-We see that business graph does not have differ substantially from the random graphs in term of path length, but is way on the tail of the distribution on transitivity. This is a good indication of a small world network and a sign that these two graphs differ on these properties.
+We see that business graph does not differ substantially from the random graphs in term of path length, but is way on the tail of the distribution on transitivity. This is a good indication of a small world network and a sign that these two graphs differ on these properties.
 
 ## Conditional Uniform Graph Distribution Tests
 
 Conditional uniform graphs are random graphs conditioned on a graph property of your choice - like size - these are similar to the graphs that we just generated, but using slightly randomization strategies.  
-We can run all of the following from the statnet package which also loads sna. We use intergraph to port the igraph objects into the statnet/network/sna structure. Note that it makes sense to detach igraph prior to using statnet as there are a few potential overlaps.
+We can run all of the following from the **statnet** package which also loads **sna**. We use **intergraph** to port the **igraph** objects into the statnet/network/sna structure. Note that it makes sense to detach **igraph** prior to using **statnet** as there are a few potential overlaps.
 
 This and the following sections are built in part from https://rpubs.com/pjmurphy/338798.
 
 For more information about conditional uniform graph distribution tests see Butts, C. T. (2001). The complexity of social networks: theoretical and empirical findings. Social Networks, 23(1), 31-72.
 
-```{r, echo=T, message=FALSE}
+First, let's use ``detach`` to unload **igraph** and then ``asNetwork`` from **intergraph** to port the networks into **statnet**.
 
+```{r, echo=T, message=FALSE}
 
 detach("package:igraph", unload = TRUE)
 
-library(statnet)
-
-library(intergraph)
 
 fl.mar <- asNetwork(flomarriage)
 
 fl.bus <- asNetwork(flobusiness)
 
-
 fl.par <- asNetwork(floparty)
 ```
 
-The cug.test function in statnet(sna) uses Monte Carlo simulation to test the conditional uniform graph null hypothesis. This null hypothesis states that an observed graph level indicator (e.g. density, centralization) was drawn from a distribution equivalent to the GLI evaluated across all simulated graphs.
+The ``cug.test`` function in **statnet** uses Monte Carlo simulation to test the conditional uniform graph null hypothesis. This null hypothesis states that an observed graph level indicator (e.g. density, centralization) was drawn from a distribution equivalent to the Grapical Lasso-based Inference (GLI) evaluated across all simulated graphs. The GLI is an algorithm used to construct the random graphs.
 
 We can look look to see if our value is unusual relative to the random values.
 
-Let's see if there are differences on 1000 simulated graphs conditioned by the number of edges between the marriage and business networks.
+Let's see if there are differences on 1000 simulated graphs ``reps=1000`conditioned by the number of edges between the marriage and business networks.
 
-First we use pick a graph level indicator, here transitivity, and condition on the number of edges using the cug.test function.
+First we use pick a graph level indicator, here transitivity (``gtrans``), and condition on the number of edges ``cmode="edges""`` using the ``cug.test`` function in **statnet**.
 
 ```{r, echo=T}
 
@@ -200,7 +202,7 @@ cug.bus <- cug.test(fl.bus, gtrans, cmode="edges", reps=1000)
 
 ```
 
-We can build a table to see how these compare by pulling out relevant parts of the list of values that result from cug.test.
+We can build a table to see how these compare by pulling out relevant parts of the list of values that result from ``cug.test``.
 
 ```{r, echo=T}
 
@@ -214,20 +216,21 @@ comp.transitivity <- cbind(G.Transitivity, Pct.Greater, Pct.Lower)
 
 rownames(comp.transitivity) <- c("Marital Network", "Business Network")
   
-round(comp.transitivity, 2)
+knitr::kable(round(comp.transitivity, 2), caption="Transitivity Comparison")
+
 ```
 
-We can see that the marital network isn't very different from the random graphs with significant percentages both below and above the observed value. This is consistent with the random graphs above. 
+We can see that the marital network isn't very different from the random graphs with significant percentages both below and above the observed value. This is consistent with the random graphs constructed in **igraph** above. 
 
 Also consistent with the random graphs, we can see that the business network is significantly higher than the random distribution. None of the conditioned graphs had a higher transitivity score than the observed business network.
 
-We can use the plot function in statnet to compare, again, this is similar to the graphs that we made above.
+We can use the ``plot`` function in **statnet** to compare, again, this is similar to the graphs that we made above.
 
 ```{r, echo=T}
+
 par(mfrow=c(1,2))
 plot(cug.mar, main="Marital Network \nTransitivity (Edges)" )
 plot(cug.bus, main="Business Network \nTransitivity (Edges" )
-par(mfrow=c(1,1))
 
 ```
 
@@ -235,10 +238,13 @@ This clearly shows the difference between these two networks, but we may wonder 
 
 ## Dyadic Analysis: QAP Correlation
 
-This kind of dyadic analysis is the what quadratic assignment procedure was built to accomplish. The question of the relationship between two networks or matrices is a bivariate one. In this case, are business and marital ties related to one another? 
+This kind of dyadic analysis is the what Quadratic Assignment Procedure was built to accomplish. The question of the relationship between two networks or matrices is a bivariate one. In this case, are business and marital ties related to one another? 
 
-The gcor function in statnet finds the correlation between two adjacency matrices.
+QAP correlation is a statistical approach to assessing the similarity between two matrices. It enanbles one to test the relationship between two sets of nodes. These are generally considered pairwise assessments - or tie-based approaches. Therefore, they lack some of the broader considerations of more advanced alternatives.
 
+The way that QAP works is that we compute the correlation between the original matrices, next we permute the rows and matrices of one of the matrices - or randomly relabel each cell in the matrix, in other words randomizing the ties in the original matrix and we calculate the correlation of these two matrices, repeat this permutation process hundreds or thousands of times. Last, we compare the correlation of the observed matrices to the distribution of the permuted correlations.  
+
+The ``gcor`` function in **statnet** finds the correlation between two adjacency matrices.
 
 ```{r, echo=T}
 
@@ -250,11 +256,12 @@ Is this score statistically significant? Much like the CUG null hypothesis tests
 
 These approaches are particularly useful for questions that involve "labeled" aspects of the graph versus structural ones. Do marriage ties, effect business ties versus is the structure of the marriage network similar to the structure of the business network. Retaining the focus on ties helps maintain that focus when discussing QAP approaches.
 
-qap.test is the function that we can use for evaluating whether the correlation score is statistically significant (see https://search.r-project.org/CRAN/refmans/sna/html/qaptest.html for more).
+``qap.test`` is the function in **statnet** that we can use for evaluating whether the correlation score is statistically significant (see https://search.r-project.org/CRAN/refmans/sna/html/qaptest.html for more).
 
 For the big paper that introduced QAP, see Krackhardt, D. (1988). Predicting with networks: Nonparametric multiple regression analysis of dyadic data. Social networks, 10(4), 359-381.
 
 ```{r, echo=T}
+
 netcor <- qaptest(list(fl.bus, fl.mar), gcor, g1=1, g2=2, reps=1000)
 
 summary(netcor)
@@ -266,6 +273,7 @@ We can see that the estimated p-value for the right tail is siginificant in this
 This finding is clear in the plot as well.
 
 ```{r, echo=T}
+
 plot(netcor)
 
 ```
@@ -274,27 +282,25 @@ plot(netcor)
 
 We are likely to want to move beyond bivariate relationships to also consider multivariate factors predicting an outcome, such as a business tie. QAP regression allows for these multivariate considerations and performs more reliably than OLS or logistic regression with these kinds of data.
 
-statnet (sna) has two functions that handle different types of data. netlm fits an OLS regression using QAP on a weighted network:
+**statnet** has two functions that handle different types of data. For reference, ``netlm`` fits an OLS regression using QAP on a weighted network:
 
-netlm(y, x, intercept=TRUE, mode="digraph", diag=FALSE,
+> netlm(y, x, intercept=TRUE, mode="digraph", diag=FALSE,
     nullhyp=c("qap", "qapspp", "qapy", "qapx", "qapallx", 
     "cugtie", "cugden", "cuguman", "classical"), 
     test.statistic = c("t-value", "beta"), tol=1e-7,
-    reps=1000)
+    reps=1000)``
     
 The y here is a network object and the x is a stack of network objects. So, we have to turn "independent variables" into networks. Here, we have turned party into a network, for example, by building an affiliation matrix (families x party) and using bipartite projection to make one-mode family-family network. Results of netlm are interpreted in the exact same way as canonical OLS regression.
 
-For binary outcomes, the netlogit function in statnet (sna) is preferred. This function fits a logistic regression on an unweighted network object. The independet variables, like netlm, are also network objects. 
+For binary outcomes, the ``netlogit`` function in **statnet** is preferred. This function fits a logistic regression on an unweighted network object. The independet variables, like netlm, are also network objects. 
 
-Reading the output of netlogit are similar to reading a canonical logistic regression.
+Reading the output of ``netlogit`` are similar to reading a canonical logistic regression.
 
-As the business ties in the Florentine network are unweighted, we use netlogit to model the effect of marital ties and party co-membership on business ties.
+As the business ties in the Florentine network are unweighted, we use ``netlogit`` to model the effect of marital ties and party co-membership on business ties.
 
 ```{r, echo=T}
 
 nlog <-netlogit(fl.bus, list(fl.mar, fl.par),reps=1000)
-
-
 
 summary(nlog)
 
@@ -302,20 +308,3 @@ summary(nlog)
 
 Like logistic regression, the results include esitmates and exponentiated estimates. Both variables are statistically significant at a <.05 standard. Marital ties (x1) are a stronger predictor than party ties (x2), but having shared marital and party ties makes it far more likely that families will also share business ties.
 
-That's it! Next week we think about exponential random graphs!
-
-```{r, echo=F}
-
-#Random leftovers
-
-#gs.con <- lapply(gs, mean_distance)
-
-
-#gs.con<- data.frame(con = unlist(lapply(gs.con, mean)))
-
-
-
-#library(knitr)
-#purl("w8_intro_to_network_stats_workshop.Rmd")
-
-```
