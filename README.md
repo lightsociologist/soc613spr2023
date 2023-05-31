@@ -67,7 +67,7 @@ Homework: [.pdf](https://github.com/lightsociologist/soc613spr2023/tree/main/hom
 
 ### 009 Introduction to Statistical Models
 
-Workshop: [.html](https://raw.githack.com/lightsociologist/soc613spr2023/main/lectures/009_ergms/wk9_ergm_wksp.html) 
+Workshop: [.html](https://raw.githack.com/lightsociologist/soc613spr2023/main/lectures/009_ergms/w9_ergm_workshop.html) | [.rmd](https://github.com/lightsociologist/soc613spr2023/tree/main/lectures/009_ergms/w9_ergm_workshop.Rmd) 
 
 Homework: [.pdf](https://github.com/lightsociologist/soc613spr2023/tree/main/homework/009hw/w9_ergm.pdf)
 
