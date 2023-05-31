@@ -1,0 +1,331 @@
+---
+title: "Week 9: Introduction to Exponential Random Graph Models"
+output:
+  html_document:
+    toc: yes
+    toc_depth: 3
+    toc_float: yes
+    df_print: paged
+    theme: united
+    highlight: tango
+---
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Introduction to ERGMs
+
+Let's dig into exponential random graph models in R.
+
+Recall Robins and Lusher (2013:13): "Exponential random graph models (ERGMs) are statistical models for network structure permitting inferences about how network ties are patterned. Put it another way, ERGMs are tie-based models for understanding how and why social network ties arise." 
+
+ERGMs are the most popular ways of thinking about the factors that led to an observed network coming about for several reasons: 1. computationally OK 2. allow for theory-testing (often highlight competing theories) 3. easy to implement in R with good support materials.
+
+For example, you may wonder what factors lead to romantic encounters between fictional medical professionals. What is the effect of monogamy in this network (or at least the effect of someone who is only willing to date one colleague)? What is the effect of racial homophily?
+
+We will begin with a network based on Grey's Anatomy Romantic Encounters. This case was developed by Gary Weissman and Benjamin Lind years ago [here](http://badhessian.org/2012/09/lessons-on-exponential-random-graph-modeling-from-greys-anatomy-hook-ups/). As the network is dated, I updated by tracing this updated graph [here](http://itsdatadana.com/2022/10/04/greys-anatomy-the-shows-entire-18-season-web-of-romances-visualized/). Here, we include one-time hook ups to marriages/divorces.
+
+In addition to the code developed by Lind, I also follow along with Luke (2015), Goordeau et al. (2008), among others.
+
+Luke, D. A. (2015). A user's guide to network analysis in R. London: Springer.
+
+Goodreau, S. M., Handcock, M. S., Hunter, D. R., Butts, C. T., & Morris, M. (2008). A statnet tutorial. Journal of statistical software, 24(9), 1.
+
+The first thing that we have to do as always is bring in our packages for the workshop. We use **igraph** to read the graph and plot it in **R**. And we use **intergraph** to move into **statnet** and **statnet** for making exponential random graph models.
+
+```{r, echo=T, message=FALSE}
+
+library(igraph)
+library(intergraph)
+library(statnet)
+
+```
+
+Next, let's load the data and explore in **igraph**.
+
+```{r, echo=T, message=FALSE}
+
+greys_graph <- readRDS("~/Documents/GitHub/soc613spr2023/lectures/009_ergms/data/greys_graph.RDS")
+
+```
+
+Let's plot in **igraph** in ``plot.igraph``. 
+
+```{r greyplot, fig.height=10, fig.width=10, echo=T, message=FALSE}
+
+plot.igraph(greys_graph, layout=layout_with_kk, edge.arrow.size=.1,     
+            vertex.color=as.factor(V(greys_graph)$gender), vertex.label.cex=.75, 
+            vertex.size=igraph::degree(greys_graph))
+
+```
+
+
+Now we can bring into **statnet** using ``asNetwork`` in **intergraph**.
+
+```{r, echo=T, message=FALSE}
+
+greys <- asNetwork(greys_graph)
+
+```
+
+And we can use ``plot`` in **statnet** to plot it.
+
+```{r, echo=T, message=FALSE}
+
+la <- plot(greys)		
+
+```
+
+Let's begin to observe differences in gender by looking at degree distributions. 
+
+We can use the ``degree`` function in **statnet**. As the network is undirected, we use ``degree(g)/2.``
+
+
+```{r, echo=T, message=FALSE}
+
+degree(greys)
+
+gry.degreedist <- table(degree(greys)/2)
+
+gry.degreedist 
+
+#Compare degree distribution by sex
+
+knitr::kable(summary(greys ~ degree(5:8, "gender")))
+
+```
+
+We can count triangles using ``summary`` function and ``triangle`` in **statnet**.
+
+```{r, echo=T, message=FALSE}
+
+summary(greys~triangle)
+
+```
+
+We can look at the mixing matrices by sex and race using the ``mixingmatrix`` function in **statnet**.
+
+```{r, echo=T, message=FALSE}
+
+mixingmatrix(greys, "gender")
+
+mixingmatrix(greys, "race")
+
+```
+
+
+## Fitting an ERGM: Null Model
+
+Now we can start fitting an ERGM. Let's start with the null model or the equivalent of running a regression with just its intercept. The null model for ergms is called  Bernoulli model where the is an equal probability for all edges in a network. We are basically adding the number of edges in addition to the number of nodes as a factor in the model.
+
+There are numerous network terms that we use in these equations from statnet. The term for this baseline model is edges.
+
+So the function will look like this:
+
+``ergm(g ~ edges)``
+
+```{r, echo=T, message=TRUE}
+
+model1 <- ergm(greys ~ edges)
+
+summary(model1)
+
+```
+
+The coefficient is difficult to make sense of, so we can use the ``plogis`` function to exponentiate the coefficient and provide a probability of there being a tie. We can see that this is exactly the same as network density using ``network.density`` in **statnet**.
+
+
+```{r, echo=T, message=TRUE}
+
+plogis(coef(model1))
+
+network.density(greys)
+
+```
+
+There is a .025 probability of their being a tie between two nodes in this graph which is the same as saying that the graph has a density of .025.
+
+## Fitting an ERGM: Exogenous Factors
+
+ERGM fits a logistic regression in this case as dyads are independent of one another.
+
+But we know this network is nonrandom and other factors likely contribute to network structure.
+
+First, let's add node attributes.
+
+In statnet we use ``nodefactor()`` for categorical and ``nodecov()`` for ratio/interval variables. 
+
+We may wonder if women are more likely to form romantic ties in the Grey's Anatomy network.
+
+```{r, echo=T, message=TRUE}
+
+model2 <- ergm(greys ~ edges + nodefactor("gender"))
+
+summary(model2)
+
+```
+
+The variable is not significant and therefore gender doesn't seem to matter for this network by itself.
+
+We can evaluate the maximum likelihood (higher is better).
+
+```{r, echo=T, message=TRUE}
+
+model1$mle.lik[1]
+model2$mle.lik[1]
+
+```
+
+And we can see that the performance is not much better for model 2.
+
+Now, let's look first at potential homophilous effects using ``nodematch()``.
+
+First, let's look at gender homophily. 
+
+```{r, echo=T, message=TRUE}
+
+model3 <- ergm(greys ~ edges + nodematch("gender"))
+
+summary(model3)
+
+exp(coef(model3))
+
+```
+
+This is a pretty heteronormative show, so we would expect that same-sex relationships would be rare. 
+
+This is indeed the case as the matching on sex reduces the likelihood of having a tie by about 89%.
+
+
+```{r, echo=T, message=TRUE}
+
+model1$mle.lik[1]
+model3$mle.lik[1]
+
+```
+
+We are still modeling logistic regressions as network configuration terms are not included (e.g. our model of tie formation does not depend on other ties).
+
+Let's look at race nodematch("race") as well to see two main competing exogenous factors.
+
+```{r, echo=T, message=FALSE}
+
+model3a <- ergm(greys ~ edges + nodematch("race"))
+
+summary(model3a)
+
+exp(coef(model3a))
+
+```
+
+Homophily by race doubles the likelihood of edge formation in this graph.
+
+Let's look at both.
+
+```{r, echo=T, message=FALSE}
+model3b <- ergm(greys ~ edges + nodematch("gender") + nodematch("race"))
+
+summary(model3b)
+
+```
+
+Note that when including nodematch terms one also would often include nodefactor as well ("main effects" vs."interaction effects").
+
+## Fitting an ERGM: Endogenous Terms
+
+Let's add network configurations to this model. A list of ergm terms is located [here](https://cran.r-project.org/web/packages/ergm/vignettes/ergm-term-crossRef.html).
+
+The first thing that we might be interested in is a monogamy effect. We can find that by evaluating the effect of having a degree of 1 or the network term ``degree(1)`` and this could look like this: ``model4 <- ergm(greys ~ edges + degree(1))`` if we included no other terms.
+
+Unfortunately, this model fails to converge. So we try again. As our model includes the match terms, let's keep them. Nested models here aren't as interpretable as in canonical regression due to the interdependence of model terms. Endogenous terms like ``degree(1)`` can work, but doesn't with these data. 
+Prior research show that four-cycles are rare in most relationship networks and we can use ``cycle(4)`` to evaluate. 4-cycles are square subgraphs where each node has two alters and indicates local clustering.
+
+Unfortunately, the model including the 4-cycle doesn't work. So we can try some other network terms. The triangle and the other clustering variables don't work very well. This is likely again due to the lack of closure between triads due to heteronormative norms around dating friends exes.
+
+We can evaluate the other side of this equation by turning to 2-stars (a node sends to two other nodes with no connection between them (e.g. an intransitive triad)).
+
+It turns out that the endogenous terms aren't playing nicely in this case. This is common and they have developed some parameters to help. First, we will add the gwesp (geometrically weighted edgewise shared partners) a measure of local clustering. This includes a decay function discounting parters beyond the first. The closer to 0, the more dramatic the discounting.
+
+```{r, echo=T}
+
+model4a <- ergm(greys ~ edges + gwesp(decay=.5, fixed=TRUE) + nodematch("gender")                 + nodematch("race"), control=control.ergm(seed=50))
+
+summary(model4a)
+
+```
+
+And now we can use geometrically weighted degree as a popularity measure. ``gwdegree`` estimates the change in the likelihood of a tie as a function of the degree of the involved nodes with a decay penalizing increases in degree. Negative effects indicate popularity is an important factor, while positive estimates indicates that the edges are more spread out through the graph. 
+
+```{r, echo=T}
+
+model4b <- ergm(greys ~ edges + gwdegree(decay = 1, fixed = TRUE) + nodematch("gender") + nodematch("race"), control=control.ergm(seed=50))
+
+summary(model4b)
+```
+
+And we can quickly check model improvement
+
+```{r, echo=T}
+
+lls <- data.frame(model1=model1$mle.lik[1], model3b=model3b$mle.lik[1], model4a=model4a$mle.lik[1], model4b=model4b$mle.lik[1])
+
+knitr::kable(lls, caption="Comparing Models")
+
+```
+
+## Fitting an ERGM: Model Fit
+
+We have been concerned with model improvement, but should actually have been also considering model fit. We specifically want to know how well properties of the simulated model fit with the observed network. This gives us confidence in the model itself. The technique for doing this takes advantage of a unique property of our models. We modeled local properties of networks with the theory that local properties aggregate into the network as a whole. So, no whole network statistics were used to model our graph. We can use network-wide statistics to compare the simulated and observed networks.
+
+We would expect that the observed network statistics would be in the confidence intervals of the simulated networks.
+
+The ``gof`` function gets us the goodness-of-fit statistics and ``plot`` those statistics in **statnet**.
+
+
+```{r, echo=T}
+
+gof4b <- gof(model4b)
+
+plot(gof4b)
+
+```
+
+And we can see that the observed statistics are generally well within the intervals. The model fits the data.
+
+We should always also check for degeneracy. We want to make sure that the simulation process worked. We have some indication that it did as the models actually spit something out, but we should check and make sure.
+
+The estimates should be normally distributed and centered on 0. The ``mcm.diagnostics`` function will give us the information we need especially a series of graphs of the covariates. We will see the normal distribution (or not) on the left side of the graphs. On the right side we will see a plot of the "noise" around 0 and it should look like almost like a solid blue horizontal line with jagged edges. If the peak of the distribution (right side) is very different than 0 or if the plot of a ratio variable has multiple peaks (right side) or if the left side has a slope or if the blue ban is very narrow, then you likely have degeneracy problems. 
+
+```{r, echo=T}
+
+
+mcmc.diagnostics(model4b)
+
+```
+
+These are distributed around 0 and so we can be confident that our models aren't degenerate. Note that the ``nodematch.sex`` is bumpy because of it consists of a few categories. 
+
+Let's return to the covariates. 
+
+It is common to talk about results of an ergm by focusing on the statistical significance and magnitude of the estimates (b). For example, we can see that there is a large negative effect of gender homophily suggesting that different-sex partnerships are common in this network. Workplace dramas, like Grey's Anatomy, feed of the overlapping romantic interests of main characters. However, it makes sense that drama on the margins is less useful. Keeping track of tertiary conflicts becomes cumbersome and many romantic relationships center on a few characters. We see that the narrative follows this logic as the geometrically weighted degree parameter is negative indicating that popularity is playing a role. Racial homophily is not as strong, but is strong consistent with racialized presentations of heternormative sexuality on tv. 
+
+We can also discuss the probablities for tie formation of our significant variables of interest (here, popularity, racial homophily, and gender homophily).
+
+Remember that we can use ``plogis()`` to exponentiate.
+
+```{r, echo=T}
+
+plogis(coef(model4b))
+
+```
+
+Gwdegree is difficult to interpret in an exponentiated form, but indicates that popularity plays a role in the network. The graph is heternormative as the gender factor is very small. The probability of gender homophily is .10. And racial homophily is an important positive factor with a probability of .63. 
+
+```{r, echo=F}
+
+#library(knitr)
+#purl("wk9_ergm_wksp.Rmd")
+
+```
