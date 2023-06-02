@@ -69,7 +69,8 @@ Homework: [.pdf](https://github.com/lightsociologist/soc613spr2023/tree/main/hom
 
 Workshop: [.html](https://raw.githack.com/lightsociologist/soc613spr2023/main/lectures/009_ergms/w9_ergm_workshop.html) | [.rmd](https://github.com/lightsociologist/soc613spr2023/tree/main/lectures/009_ergms/w9_ergm_workshop.Rmd) 
 
-Homework: [.pdf](https://github.com/lightsociologist/soc613spr2023/tree/main/homework/009hw/w9_ergm.pdf)
+Homework: [.pdf](https://github.com/lightsociologist/soc613spr2023/tree/main/homework/009hw/w9_ergm.pdf) | [cheatsheet.html](https://raw.githack.com/lightsociologist/soc613spr2023/main/homework/009hw/hw9_cheat.html) | [cheatsheet.qmd](https://github.com/lightsociologist/soc613spr2023/tree/main/homework/009hw/hw9_cheat.qmd)
+
 
 Slides: These slides from previous iterations of the course are mostly redundant with the workshop, but offer some more in-depth engagement with material, including more of the math: [.html](https://raw.githack.com/lightsociologist/soc613spr2023/main/lectures/009_ergms/w9_slides.html)
 
