@@ -140,3 +140,26 @@ The probability of a tie increases by .89 given reciprocity.
 Now that we have built a model, let's evaluate its goodness-of-fit and diagnostics.
 
 ## 3. Diagnostics
+
+Now we can check out the model fits our network. We can use ``gof`` for that and ``plot``.
+
+```{r, message=FALSE}
+
+gof4 <- gof(model4)
+
+plot(gof4)
+
+```
+
+
+This mostly looks good although degree seems a little off. I don't think this is too much of a concern.
+
+Last, we can run ``mcmc.diagnostics``.
+
+```{r, message=FALSE}
+
+mcmc.diagnostics(model4)
+
+```
+
+And these look like what we would anticipate for a successful simulation.
