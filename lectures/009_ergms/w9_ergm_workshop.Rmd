@@ -97,7 +97,7 @@ knitr::kable(summary(greys ~ degree(5:8, "gender")))
 
 ```
 
-We can count triangles using ``summary`` function and ``triangle`` in **statnet**.
+We can use the ``summary`` function for model output, but also for "descriptive statistics", like ``triangle``, in **statnet**. It is recommended that you examine your variables prior to running models.
 
 ```{r, echo=T, message=FALSE}
 
@@ -151,7 +151,7 @@ There is a .025 probability of their being a tie between two nodes in this graph
 
 ERGM fits a logistic regression in this case as dyads are independent of one another.
 
-But we know this network is nonrandom and other factors likely contribute to network structure.
+But we know this network is nonrandom and other factors likely contribute to network structure. These exogenous factors are dyad independent.
 
 First, let's add node attributes.
 
@@ -235,7 +235,7 @@ Note that when including nodematch terms one also would often include nodefactor
 
 ## Fitting an ERGM: Endogenous Terms
 
-Let's add network configurations to this model. A list of ergm terms is located [here](https://cran.r-project.org/web/packages/ergm/vignettes/ergm-term-crossRef.html).
+Let's add network configurations to this model. A list of ergm terms is located [here](https://cran.r-project.org/web/packages/ergm/vignettes/ergm-term-crossRef.html). These endogenous terms are dyad dependent.
 
 The first thing that we might be interested in is a monogamy effect. We can find that by evaluating the effect of having a degree of 1 or the network term ``degree(1)`` and this could look like this: ``model4 <- ergm(greys ~ edges + degree(1))`` if we included no other terms.
 
@@ -248,6 +248,15 @@ We can evaluate the other side of this equation by turning to 2-stars (a node se
 
 It turns out that the endogenous terms aren't playing nicely in this case. This is common and they have developed some parameters to help. First, we will add the gwesp (geometrically weighted edgewise shared partners) a measure of local clustering. This includes a decay function discounting parters beyond the first. The closer to 0, the more dramatic the discounting.
 
+Let's look at the descriptive statistics first.
+
+```{r, echo=T}
+
+summary(greys ~ edges + gwesp(decay=.5, fixed=TRUE) + nodematch("gender")                 + nodematch("race"))
+
+```
+The 0 for the gwesp term is concerning.
+
 ```{r, echo=T}
 
 model4a <- ergm(greys ~ edges + gwesp(decay=.5, fixed=TRUE) + nodematch("gender")                 + nodematch("race"), control=control.ergm(seed=50))
@@ -256,7 +265,9 @@ summary(model4a)
 
 ```
 
-And now we can use geometrically weighted degree as a popularity measure. ``gwdegree`` estimates the change in the likelihood of a tie as a function of the degree of the involved nodes with a decay penalizing increases in degree. Negative effects indicate popularity is an important factor, while positive estimates indicates that the edges are more spread out through the graph. 
+We can see that the gwesp term doesn't seem to be performing correctly. There are other clustering parameters that we could evaluate, like gwdsp (geometrically weighted dyadwise shared partner distribution), but they are not very likely to be statistically significant in this case and are pretty likely to act funky.
+
+Let's ask a different question about the structure of the network: What is the role of popularity? And now we can use geometrically weighted degree as a popularity measure. ``gwdegree`` estimates the change in the likelihood of a tie as a function of the degree of the involved nodes with a decay penalizing increases in degree. Negative effects indicate popularity is an important factor, while positive estimates indicates that the edges are more spread out through the graph. 
 
 ```{r, echo=T}
 

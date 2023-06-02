@@ -1,0 +1,142 @@
+---
+title: "HW9 Cheat Sheet"
+format: 
+  html:
+    code-fold: true
+    embed-resources: true
+execute:
+  warning: false
+editor: source
+---
+
+This is a cheat sheet for the ninth homework on exponential random graph models. It works through each step in R.
+
+First, you need the following packages.
+
+```{r, message=FALSE}
+library(statnet)
+```
+
+
+## 1. Basic Description
+
+First, we read the data, peoria.n. This is a **statnet** object and so we can use ``summary`` to inspect descriptive aspects of the network and ``plot`` to see how it looks. 
+```{r, message=FALSE}
+
+load("data/peoria.RDA")
+
+summary(peoria.n, print.adj=FALSE)
+
+plot(peoria.n)
+
+```
+## 2. ERGMs
+
+Here we move through different types of exponential random graph models.
+
+### 2a. Bernoulli Graph
+
+Now we can use ``ergm`` to build a model with a ``edges`` parameter.
+
+```{r, message=FALSE}
+
+model1 <- ergm(peoria.n ~ edges)
+
+summary(model1)
+
+```
+
+The Bernoulli model suggests that Peoria network has a significantly lower density.
+
+Recall that the exponentiated coefficient for edges is the same as network density.
+
+```{r, message=FALSE}
+
+plogis(coef(model1))
+
+network.density(peoria.n)
+
+```
+So there is .04 probability of an edge between two nodes in this graph.
+
+### 2.b Homophily in terms of time
+
+Now we can look at the time variable. 
+
+```{r, message=FALSE}
+
+model2 <- ergm(peoria.n ~ edges + nodematch("time"))
+
+summary(model2)
+
+```
+
+There is a positive and significant time homophily effect. So, there is kind of a cohort effect in terms of who is connected to whom.
+
+```{r, message=FALSE}
+
+plogis(coef(model2))
+
+```
+
+Matching on time increases the likelihood of tie formation by .66.
+
+But note that we aren't really tapping into network effects and the MCMC isn't being deployed
+
+Let's look at some endogenous effects.
+
+### 2.c Local Clustering?
+
+Now let's see if there is local clustering. The obvious place to start is the triangle parameter.
+
+```{r, message=FALSE, error=TRUE}
+
+model3 <- ergm(peoria.n ~ edges + nodematch("time") + triangle)
+
+```
+
+As is common, the ERGM has trouble fitting the triangle parameter and therefore degeneracy has occured. Let's use the geometrically weighted edgewise shared partner to evaluate local clustering. GWESP is the most common parameter to use as a local clustering alternative.
+
+```{r, message=FALSE}
+
+model3b <- ergm(peoria.n ~ edges + nodematch("time") + gwesp(0, fixed = TRUE))
+
+summary(model3b)
+
+```
+
+gwesp is significant and positive, so clustering affects tie formation. Let's exponentiate.
+
+```{r, message=FALSE}
+
+plogis(coef(model3b))
+
+```
+
+This shows that if a pair of nodes "have any positive number of friends in common and each of them is in at least one other triangle with each of those friends" then the probablity of a tie between them increases by .77.
+
+### 2.d Reciprocity?
+
+Let's evaluate reciprocity in the Peoria doctors network. We use the ``mutuality`` parameter in this directed graph to evaluate the effects of whether people send and receive ties to one another.
+
+```{r, message=FALSE}
+
+model4 <- ergm(peoria.n ~ edges + nodematch("time") + gwesp(0, fixed = TRUE) + mutual)
+
+summary(model4)
+
+```
+
+And reciprocity has a very large positive effect on tie formation improving the log-odds by nearly 2.
+
+```{r, message=FALSE}
+
+plogis(coef(model4))
+
+```
+
+The probability of a tie increases by .89 given reciprocity.
+
+Now that we have built a model, let's evaluate its goodness-of-fit and diagnostics.
+
+## 3. Diagnostics
