@@ -268,7 +268,7 @@ summary(netcor)
 
 ```
 
-We can see that the estimated p-value for the right tail is siginificant in this case p(f(perm) >= f(d)): 0.002.
+We can see that the estimated p-value for the right tail is siginificant in this case p(f(perm) >= f(d)): 0.
 
 This finding is clear in the plot as well.
 

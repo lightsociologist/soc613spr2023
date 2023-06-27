@@ -93,14 +93,14 @@ Next, we use the ``induced.subgraph(g, vids=x)`` function in **igraph** where *g
 
 ```{r echo=TRUE}
 
-biconnected <- biconnected.components(karate)
+bikarate <- lapply(biconnected_components(karate)$components, 
+              length) %>% which.max()
 
-b1 <- biconnected$components[[max(length(biconnected$components))]]
+bikaratevs <- biconnected_components(karate)$components[[bikarate]]
 
-g2 <- induced.subgraph(graph=karate,vids=b1)
+bikarate.g <- induced_subgraph(graph=karate, vids=bikaratevs)
 
-plot.igraph(g2)
-
+plot.igraph(bikarate.g)
 
 ```
 
